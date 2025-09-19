@@ -1,0 +1,35 @@
+{
+  "timestamp": "2025-09-15T23:21:21.273323",
+  "results": {
+    "anthropic": {
+      "status": "missing",
+      "message": "No API key found for Anthropic Claude API",
+      "env_var": "ANTHROPIC_API_KEY"
+    },
+    "openai": {
+      "status": "missing",
+      "message": "No API key found for OpenAI GPT API",
+      "env_var": "OPENAI_API_KEY"
+    },
+    "google": {
+      "status": "missing",
+      "message": "No API key found for Google Gemini API",
+      "env_var": "GOOGLE_API_KEY"
+    },
+    "deepseek": {
+      "status": "missing",
+      "message": "No API key found for DeepSeek API",
+      "env_var": "DEEPSEEK_API_KEY"
+    },
+    "cursor": {
+      "status": "missing",
+      "message": "No API key found for Cursor API",
+      "env_var": "CURSOR_API_KEY"
+    },
+    "firecrawl": {
+      "status": "missing",
+      "message": "No API key found for Firecrawl API",
+      "env_var": "FIRECRAWL_API_KEY"
+    }
+  }
+}

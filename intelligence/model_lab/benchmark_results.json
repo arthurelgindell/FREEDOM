@@ -1,0 +1,41 @@
+{
+  "system_info": {
+    "cpu_count": 32,
+    "memory_gb": 512.0,
+    "architecture": "arm64",
+    "mlx_version": "0.29.0"
+  },
+  "timestamp": 1757608893.347754,
+  "tests": {
+    "basic_operations": {
+      "matrix_multiplication_time": 0.17844581604003906,
+      "performance_rating": "good"
+    },
+    "model_loading": {
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "loading_time": 28.56068730354309,
+      "inference_time": 0.3111989498138428,
+      "tokens_per_second": 32.133784532312646
+    },
+    "lm_studio": {
+      "data": [
+        {
+          "id": "qwen/qwen3-30b-a3b-2507",
+          "object": "model",
+          "owned_by": "organization_owner"
+        },
+        {
+          "id": "mistralai/devstral-small-2507",
+          "object": "model",
+          "owned_by": "organization_owner"
+        },
+        {
+          "id": "text-embedding-nomic-embed-text-v1.5",
+          "object": "model",
+          "owned_by": "organization_owner"
+        }
+      ],
+      "object": "list"
+    }
+  }
+}
