@@ -9,11 +9,15 @@ echo "=========================================="
 
 # Check environment variables
 if [ -z "$OPENAI_API_KEY" ]; then
-    echo "❌ ERROR: OPENAI_API_KEY environment variable is required"
-    exit 1
+    echo "⚠️  WARNING: OPENAI_API_KEY not set - using local embedding fallback"
+    echo "   Local embeddings provide basic functionality but reduced semantic quality"
+    export KB_EMBEDDING_MODE="local"
+else
+    echo "✅ OpenAI API key detected - using OpenAI embeddings"
+    export KB_EMBEDDING_MODE="openai"
 fi
 
-echo "✅ Environment check passed"
+echo "✅ Environment check passed (mode: $KB_EMBEDDING_MODE)"
 
 # Start services with Docker Compose
 echo "🐳 Starting Docker services..."
