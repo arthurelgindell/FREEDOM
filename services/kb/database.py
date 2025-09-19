@@ -25,9 +25,9 @@ class KnowledgeBaseDB:
         """Initialize async connection pool with environment configuration"""
         self.host = os.getenv('POSTGRES_HOST', 'localhost')
         self.port = int(os.getenv('POSTGRES_PORT', '5432'))
-        self.database = os.getenv('POSTGRES_DB', 'techknowledge')
-        self.user = os.getenv('POSTGRES_USER', 'arthurdell')
-        self.password = os.getenv('POSTGRES_PASSWORD', '')
+        self.database = os.getenv('POSTGRES_DB', 'freedom_kb')
+        self.user = os.getenv('POSTGRES_USER', 'freedom')
+        self.password = os.getenv('POSTGRES_PASSWORD', 'freedom_dev')
         self.pool: Optional[asyncpg.Pool] = None
         self._initialized = False
 

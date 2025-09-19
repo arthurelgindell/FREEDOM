@@ -10,7 +10,8 @@ down:
 health:
 	@echo "🔍 Checking service health..."
 	@curl -s http://localhost:8080/health || echo "❌ API service down"
-	@curl -s http://localhost:8000/docs > /dev/null && echo "✅ MLX service up" || echo "❌ MLX service down"
+	@curl -s http://localhost:8000/docs > /dev/null && echo "✅ KB service up" || echo "❌ KB service down"
+	@curl -s http://localhost:8001/health > /dev/null && echo "✅ MLX proxy up" || echo "❌ MLX proxy down"
 	@docker-compose exec postgres pg_isready -U freedom -d freedom_kb && echo "✅ Postgres up" || echo "❌ Postgres down"
 
 clean:

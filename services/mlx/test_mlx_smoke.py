@@ -50,14 +50,14 @@ class MLXSmokeTests:
 
             if response.status_code == 200:
                 health_data = response.json()
-                model_loaded = health_data.get("model_loaded", False)
-                model_path = health_data.get("model_path", "")
+                mlx_server_reachable = health_data.get("mlx_server_reachable", False)
+                status = health_data.get("status", "unknown")
 
-                if model_loaded:
+                if mlx_server_reachable and status == "healthy":
                     self.log_test(
                         "MLX Service Health",
                         True,
-                        f"Service healthy, model loaded: {model_path}",
+                        f"Service healthy, MLX server reachable: {status}",
                         duration
                     )
                     return True
@@ -65,7 +65,7 @@ class MLXSmokeTests:
                     self.log_test(
                         "MLX Service Health",
                         False,
-                        "Service healthy but no model loaded",
+                        f"Service status: {status}, MLX reachable: {mlx_server_reachable}",
                         duration
                     )
                     return False
