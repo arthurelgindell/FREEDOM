@@ -249,13 +249,19 @@ async def query_knowledge_base(
         # Convert to response format
         spec_results = []
         for result in results:
+            # Parse specification if it's a string
+            specification = result['specification']
+            if isinstance(specification, str):
+                import json
+                specification = json.loads(specification)
+
             spec_result = SpecificationResult(
                 id=str(result['id']),
                 technology_name=result['technology_name'],
                 version=result['version'],
                 component_type=result['component_type'],
                 component_name=result['component_name'],
-                specification=result['specification'],
+                specification=specification,
                 source_url=result['source_url'],
                 confidence_score=result['confidence_score'],
                 similarity_score=round(result['similarity_score'], 4),

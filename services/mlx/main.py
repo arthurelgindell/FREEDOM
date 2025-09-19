@@ -42,10 +42,16 @@ structlog.configure(
 
 logger = structlog.get_logger(__name__)
 
-# Configuration - connect to host MLX server
+# Configuration - connect to host MLX server with fallback
 MLX_HOST = os.getenv("MLX_HOST", "host.docker.internal")
 MLX_PORT = int(os.getenv("MLX_PORT", "8000"))
 MLX_BASE_URL = f"http://{MLX_HOST}:{MLX_PORT}"
+
+# LM Studio fallback configuration
+LM_STUDIO_HOST = os.getenv("LM_STUDIO_HOST", "host.docker.internal")
+LM_STUDIO_PORT = int(os.getenv("LM_STUDIO_PORT", "1234"))
+LM_STUDIO_URL = f"http://{LM_STUDIO_HOST}:{LM_STUDIO_PORT}"
+
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 
@@ -59,10 +65,13 @@ mlx_server_status = None
 http_client = None
 
 class ProxyManager:
-    """Manages connections to local MLX server"""
+    """Manages connections to local MLX server with LM Studio fallback"""
 
     def __init__(self):
-        self.base_url = MLX_BASE_URL
+        self.primary_url = MLX_BASE_URL
+        self.fallback_url = LM_STUDIO_URL
+        self.active_url = None  # Will be set based on health checks
+        self.using_fallback = False
         self.client = None
 
     async def initialize(self):
@@ -71,7 +80,13 @@ class ProxyManager:
             timeout=httpx.Timeout(60.0),
             limits=httpx.Limits(max_connections=20, max_keepalive_connections=10)
         )
-        logger.info("Proxy client initialized", base_url=self.base_url)
+        # Determine which upstream to use
+        await self._determine_active_upstream()
+        logger.info("Proxy client initialized",
+                   primary_url=self.primary_url,
+                   fallback_url=self.fallback_url,
+                   active_url=self.active_url,
+                   using_fallback=self.using_fallback)
 
     async def close(self):
         """Close HTTP client"""
@@ -79,31 +94,83 @@ class ProxyManager:
             await self.client.aclose()
             logger.info("Proxy client closed")
 
-    async def check_health(self) -> bool:
-        """Check if MLX server is reachable"""
+    async def _determine_active_upstream(self):
+        """Determine which upstream server to use based on availability"""
+        # Try primary MLX server first
+        primary_healthy = await self._check_upstream_health(self.primary_url, "/health")
+        if primary_healthy:
+            self.active_url = self.primary_url
+            self.using_fallback = False
+            logger.info("Using primary MLX server", url=self.primary_url)
+            return
+
+        # Try LM Studio fallback with /v1/models endpoint
+        fallback_healthy = await self._check_upstream_health(self.fallback_url, "/v1/models")
+        if fallback_healthy:
+            self.active_url = self.fallback_url
+            self.using_fallback = True
+            logger.info("Using LM Studio fallback", url=self.fallback_url)
+            return
+
+        # Default to primary if both are down
+        self.active_url = self.primary_url
+        self.using_fallback = False
+        logger.warning("Both upstreams unavailable, defaulting to primary")
+
+    async def _check_upstream_health(self, url: str, endpoint: str) -> bool:
+        """Check if a specific upstream is healthy"""
         try:
-            response = await self.client.get(f"{self.base_url}/health", timeout=5.0)
-            is_healthy = response.status_code == 200
-            if mlx_server_status:
-                mlx_server_status.set(1 if is_healthy else 0)
-            return is_healthy
-        except Exception as e:
-            logger.warning("MLX server health check failed", error=str(e))
-            if mlx_server_status:
-                mlx_server_status.set(0)
+            response = await self.client.get(f"{url}{endpoint}", timeout=2.0)
+            return response.status_code == 200
+        except Exception:
             return False
 
+    async def check_health(self) -> bool:
+        """Check if active server is reachable"""
+        # Re-determine active upstream
+        await self._determine_active_upstream()
+
+        # Check the active upstream
+        endpoint = "/v1/models" if self.using_fallback else "/health"
+        is_healthy = await self._check_upstream_health(self.active_url, endpoint)
+
+        if mlx_server_status:
+            mlx_server_status.set(1 if is_healthy else 0)
+        return is_healthy
+
     async def proxy_request(self, method: str, path: str, **kwargs):
-        """Proxy request to MLX server"""
-        url = f"{self.base_url}{path}"
+        """Proxy request to active MLX server with automatic fallback"""
+        # First try with current active URL
+        url = f"{self.active_url}{path}"
 
         try:
             response = await self.client.request(method, url, **kwargs)
+
+            # If we get a 404 and we're not on fallback, try fallback
+            if response.status_code == 404 and not self.using_fallback:
+                logger.info("Primary returned 404, trying fallback", path=path)
+                await self._determine_active_upstream()
+                if self.using_fallback:
+                    url = f"{self.active_url}{path}"
+                    response = await self.client.request(method, url, **kwargs)
+
             return response
-        except httpx.TimeoutException:
-            raise HTTPException(status_code=504, detail="MLX server timeout")
-        except httpx.ConnectError:
-            raise HTTPException(status_code=503, detail="MLX server unavailable")
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            # Try fallback on connection issues
+            if not self.using_fallback:
+                logger.warning("Primary failed, trying fallback", error=str(e))
+                await self._determine_active_upstream()
+                if self.using_fallback:
+                    try:
+                        url = f"{self.active_url}{path}"
+                        return await self.client.request(method, url, **kwargs)
+                    except Exception:
+                        pass
+
+            if isinstance(e, httpx.TimeoutException):
+                raise HTTPException(status_code=504, detail="MLX server timeout")
+            else:
+                raise HTTPException(status_code=503, detail="MLX server unavailable")
         except Exception as e:
             logger.error("Proxy request failed", url=url, error=str(e))
             raise HTTPException(status_code=502, detail=f"Proxy error: {str(e)}")
@@ -120,6 +187,8 @@ class HealthResponse(BaseModel):
     status: str = Field(..., description="Service health status")
     mlx_server_reachable: bool = Field(..., description="Whether MLX server is reachable")
     uptime_seconds: float = Field(..., description="Service uptime in seconds")
+    upstream: str = Field(..., description="Which upstream is being used (primary/fallback)")
+    upstream_url: str = Field(..., description="URL of the active upstream")
 
 # Global proxy manager
 proxy_manager = None
@@ -191,7 +260,9 @@ async def health_check():
     return HealthResponse(
         status="healthy" if mlx_reachable else "degraded",
         mlx_server_reachable=mlx_reachable,
-        uptime_seconds=uptime
+        uptime_seconds=uptime,
+        upstream="fallback" if proxy_manager.using_fallback else "primary",
+        upstream_url=proxy_manager.active_url
     )
 
 @app.post("/inference")
@@ -209,20 +280,30 @@ async def inference_endpoint(request: InferenceRequest):
         active_requests.inc()
 
     try:
-        # Prepare request data for MLX VLM server
-        data = {
-            "prompt": request.prompt,
-            "max_tokens": request.max_tokens,
-            "temperature": request.temperature
-        }
+        # Different endpoints and formats for primary vs fallback
+        if proxy_manager.using_fallback:
+            # LM Studio uses OpenAI-compatible format
+            data = {
+                "messages": [{"role": "user", "content": request.prompt}],
+                "max_tokens": request.max_tokens,
+                "temperature": request.temperature,
+                "model": "ui-tars"  # Use UI-TARS model in LM Studio
+            }
+            path = "/v1/chat/completions"
+        else:
+            # Primary MLX server format
+            data = {
+                "prompt": request.prompt,
+                "max_tokens": request.max_tokens,
+                "temperature": request.temperature
+            }
+            if request.image:
+                data["image"] = request.image
+            path = "/generate"
 
-        if request.image:
-            data["image"] = request.image
-
-        # Make request to MLX server
         response = await proxy_manager.proxy_request(
             method="POST",
-            path="/v1/chat/completions" if not request.stream else "/v1/chat/completions",
+            path=path,
             json=data
         )
 
@@ -232,8 +313,28 @@ async def inference_endpoint(request: InferenceRequest):
         if proxy_requests:
             proxy_requests.labels(endpoint="inference", status="success").inc()
 
-        # Return response from MLX server
-        return response.json()
+        # Parse response based on upstream format
+        result = response.json()
+
+        # Transform LM Studio OpenAI format to MLX format if using fallback
+        if proxy_manager.using_fallback and "choices" in result:
+            # OpenAI-style response from LM Studio
+            transformed_result = {
+                "text": result["choices"][0]["message"]["content"],
+                "model": result.get("model", "ui-tars"),
+                "usage": {
+                    "input_tokens": result.get("usage", {}).get("prompt_tokens", 0),
+                    "output_tokens": result.get("usage", {}).get("completion_tokens", 0),
+                    "total_tokens": result.get("usage", {}).get("total_tokens", 0),
+                    "prompt_tps": 0,  # LM Studio doesn't provide this
+                    "generation_tps": 0,  # LM Studio doesn't provide this
+                    "peak_memory": 0  # LM Studio doesn't provide this
+                }
+            }
+            return transformed_result
+
+        # Return as-is for primary MLX server
+        return result
 
     except HTTPException:
         if proxy_requests:
@@ -252,6 +353,17 @@ async def inference_endpoint(request: InferenceRequest):
 async def list_models():
     """Proxy models list request"""
     try:
+        response = await proxy_manager.proxy_request("GET", "/v1/models")
+        return response.json()
+    except Exception as e:
+        logger.error("Models list proxy failed", error=str(e))
+        return {"models": []}
+
+@app.get("/models")
+async def list_models_alias():
+    """Alias for /v1/models to support API Gateway"""
+    try:
+        # Always use /v1/models endpoint regardless of upstream
         response = await proxy_manager.proxy_request("GET", "/v1/models")
         return response.json()
     except Exception as e:

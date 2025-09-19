@@ -688,10 +688,28 @@ async def inference_endpoint(
 
             if response.status_code == 200:
                 result = response.json()
-                result["correlation_id"] = correlation_id
+
+                # Transform MLX response to match InferenceResponse schema
+                usage_data = result.get("usage", {})
+                transformed_result = {
+                    "id": str(uuid.uuid4()),
+                    "model": result.get("model", "unknown"),
+                    "content": result.get("text", ""),  # MLX returns "text" not "content"
+                    "usage": {
+                        "prompt_tokens": usage_data.get("input_tokens", 0),
+                        "completion_tokens": usage_data.get("output_tokens", 0),
+                        "total_tokens": usage_data.get("total_tokens", 0),
+                        # Convert float TPS values to int
+                        "prompt_tps": int(usage_data.get("prompt_tps", 0)),
+                        "generation_tps": int(usage_data.get("generation_tps", 0)),
+                        "peak_memory": int(usage_data.get("peak_memory", 0) * 1024 * 1024 * 1024)  # Convert GB to bytes
+                    },
+                    "created": int(time.time()),
+                    "correlation_id": correlation_id
+                }
 
                 # Record metrics
-                model_name = result.get("model", "unknown")
+                model_name = transformed_result["model"]
                 MLX_INFERENCE_DURATION.labels(model=model_name).observe(duration)
                 MLX_REQUESTS.labels(operation="inference", status="success").inc()
 
@@ -699,11 +717,11 @@ async def inference_endpoint(
                     "MLX inference completed",
                     correlation_id=correlation_id,
                     model=model_name,
-                    tokens_generated=result.get("usage", {}).get("completion_tokens", 0),
+                    tokens_generated=transformed_result["usage"]["completion_tokens"],
                     processing_time_ms=duration * 1000
                 )
 
-                return InferenceResponse(**result)
+                return InferenceResponse(**transformed_result)
             else:
                 MLX_REQUESTS.labels(operation="inference", status="error").inc()
                 logger.error(

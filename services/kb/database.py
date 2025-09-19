@@ -220,8 +220,8 @@ class KnowledgeBaseDB:
 
                 result = await conn.fetchrow(
                     query,
-                    (spec_id, tech_id, version, component_type, component_name,
-                     json.dumps(specification), source_url, "api_ingest", confidence_score, embedding_vector)
+                    spec_id, tech_id, version, component_type, component_name,
+                    json.dumps(specification), source_url, "api_ingest", confidence_score, embedding_vector
                 )
 
                 return str(result['id']) if result else None

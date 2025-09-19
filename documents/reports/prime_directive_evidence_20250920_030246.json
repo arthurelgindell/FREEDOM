@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-09-19T23:02:46Z",
+  "test": "Prime Directive Workflow Verification",
+  "results": {
+    "execute": {
+      "containers_running": true,
+      "container_count":        6
+    },
+    "process": {
+      "inference_endpoint": {
+        "status": true,
+        "response": {"id":"c3a17b33-3191-4622-82ad-e026f9451292","model":"mlx-community/nanoLLaVA-1.5-8bit","content":"5 plus 3 is 8.","usage":{"prompt_tokens":23,"completion_tokens":9,"total_tokens":32,"prompt_tps":832,"generation_tps":351,"peak_memory":1267275146},"created":1758322966,"correlation_id":"unknown"}
+      },
+      "models_endpoint": {
+        "status": true,
+        "response": {"detail":"Method Not Allowed"}
+      }
+    },
+    "produce": {
+      "inference_schema_valid": true,
+      "models_schema_valid": false
+    },
+    "integrate": {
+      "mlx_proxy": {"status":"healthy","mlx_server_reachable":true,"uptime_seconds":248.79358410835266,"upstream":"primary","upstream_url":"http://host.docker.internal:8000"},
+      "data_flow": "gateway → mlx_proxy → mlx_server"
+    },
+    "deliver": {
+      "verdict": "PASS",
+      "evidence_file": "prime_directive_evidence_20250920_030246.json"
+    }
+  }
+}
