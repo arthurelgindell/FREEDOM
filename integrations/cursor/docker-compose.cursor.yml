@@ -1,0 +1,72 @@
+version: '3.8'
+
+# Cursor IDE Integration Services for FREEDOM Platform
+# Optional bridge service for enhanced Cursor integration
+
+services:
+  cursor-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.cursor
+    container_name: freedom-cursor-bridge
+    ports:
+      - "9000:9000"  # Cursor-specific API bridge
+    environment:
+      # FREEDOM Platform connectivity
+      - FREEDOM_GATEWAY=http://api:8080
+      - FREEDOM_API_KEY=${FREEDOM_API_KEY:-dev-key-change-in-production}
+      - FREEDOM_WEBSOCKET=ws://api:8080
+      
+      # Cursor-specific settings
+      - CURSOR_BRIDGE_PORT=9000
+      - CURSOR_SESSION_TIMEOUT=3600
+      - CURSOR_MAX_CONNECTIONS=100
+      
+      # Performance tuning
+      - NODE_ENV=production
+      - UV_THREADPOOL_SIZE=16
+      
+      # Integration features
+      - ENABLE_CONTEXT_INJECTION=true
+      - ENABLE_REAL_TIME_DOCS=true
+      - ENABLE_PERFORMANCE_MONITORING=true
+      
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - freedom_default
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Enhanced Redis for Cursor session management
+  cursor-redis:
+    image: redis:7-alpine
+    container_name: freedom-cursor-redis
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb"]
+    ports:
+      - "6380:6379"  # Separate port for Cursor sessions
+    volumes:
+      - cursor-redis-data:/data
+    networks:
+      - freedom_default
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  cursor-redis-data:
+
+networks:
+  freedom_default:
+    external: true  # Use existing FREEDOM network

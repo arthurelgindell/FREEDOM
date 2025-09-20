@@ -1,0 +1,44 @@
+{
+  "name": "freedom-cursor-integration",
+  "version": "1.0.0",
+  "description": "FREEDOM Platform integration bridge for Cursor IDE",
+  "main": "freedom-cursor-bridge.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts,.js",
+    "dev": "ts-node freedom-cursor-bridge.ts"
+  },
+  "dependencies": {
+    "ws": "^8.14.0",
+    "node-fetch": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "keywords": [
+    "cursor",
+    "ide",
+    "ai",
+    "integration",
+    "freedom",
+    "platform"
+  ],
+  "author": "FREEDOM Platform",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "file:///Volumes/DATA/FREEDOM"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
