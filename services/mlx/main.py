@@ -287,7 +287,7 @@ async def inference_endpoint(request: InferenceRequest):
                 "messages": [{"role": "user", "content": request.prompt}],
                 "max_tokens": request.max_tokens,
                 "temperature": request.temperature,
-                "model": "ui-tars"  # Use UI-TARS model in LM Studio
+                "model": "ui-tars-1.5-7b-mlx"  # Use UI-TARS model in LM Studio
             }
             path = "/v1/chat/completions"
         else:
