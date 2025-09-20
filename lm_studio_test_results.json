@@ -1,0 +1,97 @@
+{
+  "timestamp": 1758369755.2346601,
+  "total_tests": 6,
+  "passed_tests": 6,
+  "failed_tests": 0,
+  "total_duration": 1.3762328624725342,
+  "results": [
+    {
+      "test": "Model Files Exist",
+      "status": "PASS",
+      "duration_ms": 0.28896331787109375,
+      "details": {
+        "models/lmstudio-community/Qwen3-30B-A3B-Instruct-2507-MLX-4bit": {
+          "exists": true,
+          "has_config": true,
+          "model_files": 4
+        },
+        "models/portalAI/UI-TARS-1.5-7B-mlx-bf16": {
+          "exists": true,
+          "has_config": true,
+          "model_files": 4
+        }
+      },
+      "error": null,
+      "timestamp": 1758369753.8587258
+    },
+    {
+      "test": "LM Studio Connectivity",
+      "status": "PASS",
+      "duration_ms": 6.71696662902832,
+      "details": {
+        "status_code": 200,
+        "models_count": 3
+      },
+      "error": null,
+      "timestamp": 1758369753.865451
+    },
+    {
+      "test": "Model Availability",
+      "status": "PASS",
+      "duration_ms": 1.67083740234375,
+      "details": {
+        "available_models": [
+          "qwen3-30b-a3b-instruct-2507-mlx",
+          "ui-tars-1.5-7b-mlx",
+          "text-embedding-nomic-embed-text-v1.5"
+        ],
+        "freedom_models_found": [
+          "qwen3-30b-a3b-instruct-2507-mlx",
+          "ui-tars-1.5-7b-mlx"
+        ]
+      },
+      "error": null,
+      "timestamp": 1758369753.867153
+    },
+    {
+      "test": "Chat Completion",
+      "status": "PASS",
+      "duration_ms": 245.8968162536621,
+      "details": {
+        "response": "4",
+        "correct_answer": true,
+        "tokens_used": 40,
+        "model": "qwen3-30b-a3b-instruct-2507-mlx"
+      },
+      "error": null,
+      "timestamp": 1758369754.113083
+    },
+    {
+      "test": "Model Performance",
+      "status": "PASS",
+      "duration_ms": 1106.8429946899414,
+      "details": {
+        "generation_time_seconds": 1.1067960262298584,
+        "total_tokens": 117,
+        "tokens_per_second": 105.71,
+        "response_length": 387,
+        "contains_code": true
+      },
+      "error": null,
+      "timestamp": 1758369755.22003
+    },
+    {
+      "test": "MLX Proxy Integration",
+      "status": "PASS",
+      "duration_ms": 14.409065246582031,
+      "details": {
+        "proxy_healthy": true,
+        "using_fallback": false,
+        "upstream_url": "http://host.docker.internal:8000",
+        "mlx_server_reachable": true
+      },
+      "error": null,
+      "timestamp": 1758369755.234536
+    }
+  ]
+}
