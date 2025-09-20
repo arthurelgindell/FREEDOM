@@ -132,5 +132,74 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+  # Router Service
+  router:
+    build:
+      context: ./services/router
+      dockerfile: Dockerfile
+    container_name: freedom-router
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "8003:8003"
+    networks:
+      - freedom_default
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: freedom-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - freedom_default
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # Playwright Worker
+  playwright-worker:
+    build:
+      context: ./services/playwright_worker
+      dockerfile: Dockerfile
+    container_name: freedom-playwright-worker
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - freedom_default
+    restart: unless-stopped
+
+  # Firecrawl Service
+  firecrawl:
+    build:
+      context: ./services/firecrawl
+      dockerfile: Dockerfile
+    container_name: freedom-firecrawl
+    environment:
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+    ports:
+      - "8004:8004"
+    networks:
+      - freedom_default
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  redis-data:
+
+networks:
+  freedom_default:
+    driver: bridge

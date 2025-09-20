@@ -243,10 +243,10 @@ Preflight verifies:
 
 ## 🏗️ Verified Functional Components
 
-### Core Infrastructure (Last Verified: 2025-09-20T03:05:00Z)
+### Core Infrastructure (Last Verified: 2025-09-20T05:20:00Z)
 | Component | Port | Status | Purpose |
 |-----------|------|--------|---------|
-| **Docker Orchestration** | - | ✅ OPERATIONAL | 6 containers with health checks |
+| **Docker Orchestration** | - | ✅ OPERATIONAL | 10 containers with health checks |
 | **API Gateway** | 8080 | ✅ VERIFIED | Service orchestration, auth, metrics |
 | **Knowledge Base** | internal | ✅ FUNCTIONAL | Vector search with pgvector embeddings |
 | **MLX Proxy** | 8001 | ✅ CONNECTED | Inference proxy with LM Studio fallback |
@@ -255,6 +255,14 @@ Preflight verifies:
 | **Castle GUI** | 3000 | ✅ SERVING | Next.js React frontend |
 | **Host MLX Server** | 8000 | ✅ RUNNING | nanoLLaVA-1.5-8bit model |
 | **LM Studio** | 1234 | ✅ FALLBACK | UI-TARS-1.5-7B-mlx backup |
+
+### Crawl Stack Infrastructure (Deployed: 2025-09-20T05:18:00Z)
+| Component | Port | Status | Purpose |
+|-----------|------|--------|---------|
+| **Redis** | 6379 | ✅ HEALTHY | Message queue, task management, caching |
+| **Router Service** | 8003 | ✅ OPERATIONAL | Intelligent task routing (auth vs simple) |
+| **Firecrawl API** | 8004 | ✅ ACTIVE | Cloud-based web scraping with API key |
+| **Playwright Worker** | - | ✅ RUNNING | Browser automation for authenticated scraping |
 
 ### Service Architecture & Workflow
 
@@ -272,6 +280,18 @@ User Request Flow:
   pgvector      ↓ fallback ↓        22 techs
             [LM Studio :1234]      702 specs
               UI-TARS-1.5-7B
+
+Crawl Stack Flow:
+
+    [Crawl Request] → [Router :8003]
+         ↓                    ↓
+    Auth Required?       Simple Scrape?
+         ↓                    ↓
+    [Redis Queue]        [Firecrawl :8004]
+         ↓                    ↓
+    [Playwright Worker]  [Cloud API]
+         ↓                    ↓
+    [Authenticated Data] [Scraped Content]
 ```
 
 ### Functional Capabilities
@@ -304,6 +324,15 @@ User Request Flow:
 - **REST API**: Query technologies, specifications, categories
 - **Statistical Analysis**: Technology adoption metrics
 - **PostgreSQL Backend**: Structured knowledge storage
+- **Crawl Integration**: Automated documentation updates via crawl stack
+
+#### Crawl Stack (`services/router/`, `services/firecrawl/`, `services/playwright_worker/`)
+- **Intelligent Routing**: Router analyzes intent and URL patterns
+- **Redis Queue**: Task management for Playwright jobs
+- **Firecrawl Integration**: Cloud API with fc-b641c64dbb3b4962909c2f8f04c524ba
+- **Playwright Worker**: Headless browser for authenticated scraping
+- **Auto-Detection**: Identifies login/auth requirements automatically
+- **Result Caching**: Redis-based result storage with TTL
 
 ### Quick Verification Commands
 
@@ -331,6 +360,20 @@ curl -X POST http://localhost:8080/inference \
 
 # Test TechKnowledge
 curl http://localhost:8002/stats
+
+# Test Crawl Stack
+bash scripts/verify_crawl_stack.sh
+
+# Test Router health
+curl http://localhost:8003/health
+
+# Test Firecrawl service
+curl http://localhost:8004/health
+
+# Submit crawl task
+curl -X POST http://localhost:8003/crawl \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","intent":"scrape"}'
 
 # Access services
 open http://localhost:3000  # Castle GUI
