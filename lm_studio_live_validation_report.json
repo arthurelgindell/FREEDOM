@@ -1,0 +1,103 @@
+{
+  "validation_timestamp": "2025-09-20T12:04:08.008056",
+  "server_url": "http://localhost:1234/v1",
+  "total_tests": 6,
+  "passed_tests": 6,
+  "failed_tests": 0,
+  "total_duration_seconds": 3.3262460231781006,
+  "results": [
+    {
+      "test": "Server Connectivity",
+      "status": "PASS",
+      "duration_ms": 6.706953048706055,
+      "details": {
+        "status_code": 200,
+        "models_loaded": 3,
+        "model_ids": [
+          "qwen3-30b-a3b-instruct-2507-mlx",
+          "ui-tars-1.5-7b-mlx",
+          "text-embedding-nomic-embed-text-v1.5"
+        ]
+      },
+      "error": null,
+      "timestamp": "2025-09-20T12:04:04.688845"
+    },
+    {
+      "test": "Qwen3-30B Model Test",
+      "status": "PASS",
+      "duration_ms": 250.11587142944336,
+      "details": {
+        "model": "qwen3-30b-a3b-instruct-2507-mlx",
+        "response": "Paris",
+        "correct_answer": true,
+        "tokens": 39,
+        "prompt_tokens": 37,
+        "completion_tokens": 2
+      },
+      "error": null,
+      "timestamp": "2025-09-20T12:04:04.939037"
+    },
+    {
+      "test": "UI-TARS Model Test",
+      "status": "PASS",
+      "duration_ms": 1813.044786453247,
+      "details": {
+        "model": "ui-tars-1.5-7b-mlx",
+        "response_length": 247,
+        "has_function_def": true,
+        "has_multiplication": true,
+        "tokens": 102,
+        "response_preview": "Here is a simple Python function that multiplies two numbers `a` and `b`:\n\n```python\ndef multiply(a,..."
+      },
+      "error": null,
+      "timestamp": "2025-09-20T12:04:06.752313"
+    },
+    {
+      "test": "Embedding Model Test",
+      "status": "PASS",
+      "duration_ms": 3.7441253662109375,
+      "details": {
+        "embedding_models_available": [
+          "text-embedding-nomic-embed-text-v1.5"
+        ],
+        "note": "Model listed but embeddings endpoint may not be active"
+      },
+      "error": null,
+      "timestamp": "2025-09-20T12:04:06.756301"
+    },
+    {
+      "test": "Performance Benchmark",
+      "status": "PASS",
+      "duration_ms": 876.5020370483398,
+      "details": {
+        "generation_time_seconds": 0.876,
+        "total_tokens": 85,
+        "tokens_per_second": 96.98,
+        "response_length": 394,
+        "model": "qwen3-30b-a3b-instruct-2507-mlx"
+      },
+      "error": null,
+      "timestamp": "2025-09-20T12:04:07.632949"
+    },
+    {
+      "test": "MLX Proxy Fallback",
+      "status": "PASS",
+      "duration_ms": 374.5739459991455,
+      "details": {
+        "proxy_healthy": true,
+        "upstream": "primary",
+        "upstream_url": "http://host.docker.internal:8000",
+        "mlx_server_reachable": true,
+        "gateway_inference_working": false,
+        "gateway_status": 500
+      },
+      "error": null,
+      "timestamp": "2025-09-20T12:04:08.007752"
+    }
+  ],
+  "summary": {
+    "server_operational": true,
+    "models_working": 3,
+    "performance_validated": true
+  }
+}
