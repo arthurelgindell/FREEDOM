@@ -1,0 +1,14 @@
+{
+  "name": "freedom-redis-mcp",
+  "version": "1.0.0",
+  "description": "Redis MCP server for FREEDOM platform",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "redis": "^4.7.0"
+  }
+}

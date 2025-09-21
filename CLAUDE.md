@@ -180,6 +180,57 @@ PGPASSWORD=freedom_dev psql -h localhost -U freedom -d techknowledge -c "\dt"
 All verification must produce timestamped artifacts:
 `documents/reports/EVIDENCE_<component>_<YYYY-MM-DD_HHMM>.json`
 
+## MCP (Model Context Protocol) Servers
+
+The FREEDOM platform includes 6 MCP servers for enhanced Claude integration:
+
+### 1. RAG MCP Server (`rag`)
+**Location**: `/Volumes/DATA/FREEDOM/mcp-servers/rag-mcp/`
+**Purpose**: Semantic search across 2,425 technical documents
+**Tools**:
+- `rag_query`: Natural language semantic search with context building
+- `rag_search`: Simple keyword search
+- `rag_stats`: System statistics and health
+- `rag_explore`: Browse by technology/component
+- `rag_explain`: Get detailed concept explanations
+- `rag_compare`: Compare features across technologies
+
+**Performance**: 226ms avg response (cached), 16.2x faster embeddings via LM Studio
+
+### 2. PostgreSQL MCP Servers
+**postgres-freedom**: System database (freedom_kb)
+**techknowledge**: Specifications database
+**Features**: Connection pooling, transaction support, schema awareness
+
+### 3. Docker MCP (`docker`)
+**Purpose**: Container management and monitoring
+**Features**: Health checks, log analysis, service restart
+
+### 4. HTTP API MCP (`http-api`)
+**Purpose**: REST API testing
+**Features**: Pre-configured auth headers, performance testing
+
+### 5. Redis MCP (`redis`)
+**Location**: `/Volumes/DATA/FREEDOM/mcp-servers/redis-mcp/`
+**Purpose**: Queue and cache management
+**Tools**: get/set operations, queue status, pattern matching
+
+### Setup for Claude Code
+```bash
+# MCP servers are already configured in project
+claude mcp list  # View all 6 servers
+
+# Start required services
+docker-compose up -d postgres redis
+cd services/rag_chunker && python3 rag_api.py
+```
+
+### Using MCP in Claude
+- Natural language queries: "Search for cursor vim mode documentation"
+- Direct tool calls: MCP servers provide specialized tools
+- Persistent connections: 10x faster than one-off commands
+- Cached operations: Intelligent result caching
+
 ## Important Notes
 - NEVER claim something works without verification
 - Always run `make verify` before claiming completion

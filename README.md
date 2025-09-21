@@ -617,6 +617,39 @@ freedom-castle-gui-1  Up             0.0.0.0:3000->3000/tcp
 
 ---
 
+## 🤖 Claude AI Integration (MCP Servers)
+
+The FREEDOM platform includes advanced Model Context Protocol (MCP) servers for enhanced AI-assisted development with Claude Desktop and Claude Code.
+
+### Available MCP Servers
+
+| Server | Purpose | Key Features | Port/Location |
+|--------|---------|--------------|---------------|
+| **rag** | Semantic knowledge search | Natural language queries across 2,425 docs | Port 5003 |
+| **postgres-freedom** | System database | Connection pooling, transaction support | Port 5432 |
+| **techknowledge** | Specifications database | Raw tech specs, crawl data | Port 5432 |
+| **docker** | Container management | Health monitoring, log analysis | Docker socket |
+| **http-api** | API testing | Pre-configured auth, performance testing | Port 8080 |
+| **redis** | Cache/queue management | Queue monitoring, cache operations | Port 6379 |
+
+### Quick Start with Claude
+
+```bash
+# Install MCP servers (one-time setup)
+cd mcp-servers/
+npm install  # Install dependencies for custom servers
+
+# Start required services
+docker-compose up -d  # Start PostgreSQL, Redis, etc.
+cd services/rag_chunker && python3 rag_api.py  # Start RAG API
+
+# MCP servers auto-activate in Claude Desktop/Code
+```
+
+See [MCP_SETUP_GUIDE.md](documents/MCP_SETUP_GUIDE_20250921_1800.md) for detailed configuration instructions.
+
+---
+
 ## 📜 License
 MIT License – see [LICENSE](LICENSE)
 
