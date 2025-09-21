@@ -115,17 +115,17 @@ class RetrievalService:
                 if conditions:
                     filter_clause = "WHERE " + " AND ".join(conditions)
 
-            # Cosine similarity search
+            # Cosine similarity search - cast REAL[] to vector for similarity computation
             query = f"""
                 SELECT
                     id, chunk_text, chunk_index, specification_id,
                     technology_name, component_type, component_name,
                     version, source_type,
-                    1 - (dense_vector <=> %s::vector) AS similarity
+                    1 - (dense_vector::vector(768) <=> %s::vector(768)) AS similarity
                 FROM document_chunks
                 {filter_clause}
                 WHERE dense_vector IS NOT NULL
-                ORDER BY dense_vector <=> %s::vector
+                ORDER BY dense_vector::vector(768) <=> %s::vector(768)
                 LIMIT %s
             """
 

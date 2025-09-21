@@ -1,0 +1,2 @@
+{"text": "hxxp://bad-domain.example/update login", "label": "malicious"}
+{"text": "Visit our company portal https://intra.example.com", "label": "benign"}

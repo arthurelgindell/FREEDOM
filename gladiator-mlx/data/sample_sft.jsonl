@@ -1,0 +1,2 @@
+{"instruction": "Summarize the incident timeline.", "input": "Phishing led to token theft; lateral movement to DB.", "output": "User clicked phishing email, token exfil, attacker moved laterally to DB and exfiltrated 2GB."}
+{"instruction": "Generate Sigma rule for suspicious PowerShell.", "input": "Detect encoded command usage with base64", "output": "title: Suspicious Encoded PowerShell\nlogsource: process_creation\ncondition: selection\nselection:\n  Image|endswith: powershell.exe\n  CommandLine|contains: -enc"}

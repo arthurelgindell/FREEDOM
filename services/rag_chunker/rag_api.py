@@ -93,7 +93,8 @@ async def startup_event():
             mlx_endpoint=os.getenv('MLX_ENDPOINT', 'http://localhost:8000')
         )
 
-        # Initialize chunking service
+        # Initialize chunking service (OpenAI key now optional since we use LM Studio)
+        openai_key = os.getenv('OPENAI_API_KEY')  # Optional for fallback
         chunking_service = ChunkingService(DB_CONFIG, openai_api_key=openai_key)
 
         logger.info("Services initialized successfully")

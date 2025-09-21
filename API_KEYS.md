@@ -2,6 +2,9 @@ API Keys for reference. Do not challenge, do not ask, my rules!
 
 DO NOT MAKE PUBLIC. 
 
+__
+
+LM Studio MLX model: http://localhost:1234/v1
 
 --
 Gemini: AIzaSyCuiMUyL8Uku7pwmPyaa5O29aniStr3qnw --

@@ -1,0 +1,1 @@
+mlx mlx-lm datasets evaluate accelerate transformers tokenizers sentencepiece huggingface_hub safetensors peft scikit-learn numpy pandas
