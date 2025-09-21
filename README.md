@@ -127,15 +127,17 @@ The FREEDOM RAG system provides intelligent document chunking, embedding generat
 ### Current Status
 - **API Endpoint**: `http://localhost:5003`
 - **Database**: PostgreSQL (`techknowledge`)
-- **Total Chunks**: 2,425 documents indexed
+- **Total Chunks**: 2,425 documents indexed (100% with embeddings)
 - **Technologies**: cursor (895), lmstudio (529), slack (277), anthropic (248), langgraph (111)
-- **Status**: ⚠️ Beta (retrieval endpoints need debugging)
+- **Status**: ✅ OPERATIONAL with LM Studio embeddings
 
 ### Key Features
-- **Hybrid Search**: Combines dense vectors (embeddings) + sparse vectors (keywords)
+- **Local-First Embeddings**: LM Studio primary (16.2x faster than OpenAI)
+- **Intelligent Fallback**: LM Studio → OpenAI → Gemini → Fail
+- **Hybrid Search**: Combines dense vectors (768-dim) + sparse vectors (keywords)
 - **Smart Chunking**: 512-768 tokens with 64 token overlap
 - **Caching Layer**: Query result caching for performance
-- **Mock Embeddings**: Fallback when OpenAI API unavailable
+- **Zero Cost**: 100% local embedding generation
 - **Multi-Technology**: Supports 10+ technology documentations
 
 ### Quick Start
@@ -157,14 +159,17 @@ python3 test_e2e_rag.py
 - `POST /query` - RAG query with hybrid search
 - `GET /search` - Simple keyword search
 
-### Known Issues
-1. Query endpoints return empty chunk arrays (debugging needed)
-2. Only 4.1% chunks have dense embeddings (OpenAI key needed)
-3. Search endpoints need SQL query fixes
+### Performance Metrics
+- **Embedding Generation**: 28.9ms (LM Studio) vs 468ms (OpenAI)
+- **Query Response**: ~226ms average
+- **Throughput**: 76.6 embeddings/sec
+- **Storage**: 768-dimension vectors (50% smaller than OpenAI)
 
 ### Documentation
 - Full documentation: `services/rag_chunker/README.md`
 - Test report: `documents/RAG_SYSTEM_TEST_REPORT_*.md`
+- LM Studio Migration: `documents/LM_STUDIO_MIGRATION_REPORT_20250921_1015.md`
+- Embedding Migration: `documents/LM_STUDIO_EMBEDDING_MIGRATION_20250921.md`
 
 ---
 
