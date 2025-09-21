@@ -44,3 +44,5 @@ package-lock.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+# Flutter SDK (install separately when needed)
+flutter/
