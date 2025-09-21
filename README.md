@@ -99,11 +99,72 @@ Does it do what it claims?
 
 ```
 FREEDOM/
+├── services/
+│   ├── rag_chunker/          # RAG System (Port 5003)
+│   │   ├── rag_api.py        # FastAPI REST service
+│   │   ├── chunking_service.py
+│   │   ├── retrieval_service.py
+│   │   └── [14 total files]
+│   └── [other services]
+├── documents/                # Timestamped documentation
+├── core/                     # Core platform services
+├── integrations/             # External integrations
+└── scripts/                  # Utility scripts
+```
+
 ** Organized, one folder per function
 ** Project folder ALWAYS Logical and tidy
 ** ONE .py file per function
 ** Docker highly leveraged for functional value
 
+---
+
+## 🤖 RAG System (Retrieval-Augmented Generation)
+
+### Overview
+The FREEDOM RAG system provides intelligent document chunking, embedding generation, and hybrid search capabilities for technical documentation across 10+ integrated technologies.
+
+### Current Status
+- **API Endpoint**: `http://localhost:5003`
+- **Database**: PostgreSQL (`techknowledge`)
+- **Total Chunks**: 2,425 documents indexed
+- **Technologies**: cursor (895), lmstudio (529), slack (277), anthropic (248), langgraph (111)
+- **Status**: ⚠️ Beta (retrieval endpoints need debugging)
+
+### Key Features
+- **Hybrid Search**: Combines dense vectors (embeddings) + sparse vectors (keywords)
+- **Smart Chunking**: 512-768 tokens with 64 token overlap
+- **Caching Layer**: Query result caching for performance
+- **Mock Embeddings**: Fallback when OpenAI API unavailable
+- **Multi-Technology**: Supports 10+ technology documentations
+
+### Quick Start
+```bash
+# Start RAG API service
+cd services/rag_chunker
+python3 rag_api.py
+
+# Test health
+curl http://localhost:5003/health
+
+# Run tests
+python3 test_e2e_rag.py
+```
+
+### API Endpoints
+- `GET /health` - System health check
+- `GET /stats` - Chunk statistics
+- `POST /query` - RAG query with hybrid search
+- `GET /search` - Simple keyword search
+
+### Known Issues
+1. Query endpoints return empty chunk arrays (debugging needed)
+2. Only 4.1% chunks have dense embeddings (OpenAI key needed)
+3. Search endpoints need SQL query fixes
+
+### Documentation
+- Full documentation: `services/rag_chunker/README.md`
+- Test report: `documents/RAG_SYSTEM_TEST_REPORT_*.md`
 
 ---
 
