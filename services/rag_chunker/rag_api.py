@@ -87,11 +87,9 @@ async def startup_event():
     global retrieval_service, chunking_service
 
     try:
-        # Initialize retrieval service
-        openai_key = os.getenv('OPENAI_API_KEY')
+        # Initialize retrieval service (now using centralized embedding service)
         retrieval_service = RetrievalService(
             DB_CONFIG,
-            openai_api_key=openai_key,
             mlx_endpoint=os.getenv('MLX_ENDPOINT', 'http://localhost:8000')
         )
 

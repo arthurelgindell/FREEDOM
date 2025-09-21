@@ -16,9 +16,9 @@ import time
 import psycopg2
 from psycopg2.extras import RealDictCursor, Json
 import numpy as np
-from openai import OpenAI
 import requests
 import tiktoken
+from embedding_service import get_embedding_service
 
 # Configure logging
 logging.basicConfig(
@@ -42,32 +42,25 @@ class RetrievalService:
     """Service for retrieving relevant chunks"""
 
     def __init__(self, db_config: Dict[str, Any],
-                 openai_api_key: Optional[str] = None,
                  mlx_endpoint: str = "http://localhost:8000"):
         self.db_config = db_config
         self.mlx_endpoint = mlx_endpoint
-        self.openai_client = None
         self.tokenizer = tiktoken.encoding_for_model("text-embedding-ada-002")
 
-        if openai_api_key:
-            self.openai_client = OpenAI(api_key=openai_api_key)
+        # Use centralized embedding service
+        self.embedding_service = get_embedding_service()
 
         # Database connection
         self.conn = psycopg2.connect(**db_config)
         self.conn.autocommit = False
 
     async def generate_query_embedding(self, query: str) -> Optional[List[float]]:
-        """Generate embedding for search query"""
-        if not self.openai_client:
-            return None
-
+        """Generate embedding for search query using the embedding service"""
         try:
-            response = self.openai_client.embeddings.create(
-                model="text-embedding-ada-002",
-                input=query,
-                encoding_format="float"
-            )
-            return response.data[0].embedding
+            # Use the embedding service which handles LM Studio -> OpenAI -> Gemini fallback
+            embedding = self.embedding_service.get_embedding(query)
+            logger.info(f"Query embedding generated: {len(embedding)} dimensions")
+            return embedding
         except Exception as e:
             logger.error(f"Error generating query embedding: {e}")
             return None
