@@ -70,3 +70,4 @@ volumes:
 networks:
   freedom_default:
     external: true  # Use existing FREEDOM network
+

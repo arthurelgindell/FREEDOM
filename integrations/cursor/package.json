@@ -6,12 +6,16 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
+    "test:integration": "node test-integration.js",
+    "test:live": "node test-integration.js",
     "lint": "eslint . --ext .ts,.js",
-    "dev": "ts-node freedom-cursor-bridge.ts"
+    "dev": "ts-node freedom-cursor-bridge.ts",
+    "extension:build": "cd extension && npm run compile",
+    "extension:package": "cd extension && vsce package"
   },
   "dependencies": {
     "ws": "^8.14.0",
-    "node-fetch": "^3.3.0"
+    "axios": "^1.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

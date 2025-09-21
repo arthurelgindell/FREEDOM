@@ -1,0 +1,162 @@
+{
+  "name": "freedom-platform",
+  "displayName": "FREEDOM Platform Integration",
+  "description": "AI-powered development assistance with knowledge base integration",
+  "version": "1.0.0",
+  "publisher": "freedom-platform",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "assistant",
+    "knowledge",
+    "freedom",
+    "platform"
+  ],
+  "activationEvents": [
+    "onCommand:freedom.searchKnowledge",
+    "onCommand:freedom.generateCode",
+    "onCommand:freedom.getDocumentation",
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "freedom.searchKnowledge",
+        "title": "Search Knowledge Base",
+        "category": "FREEDOM"
+      },
+      {
+        "command": "freedom.generateCode",
+        "title": "Generate Code with AI",
+        "category": "FREEDOM"
+      },
+      {
+        "command": "freedom.getDocumentation",
+        "title": "Get Framework Documentation",
+        "category": "FREEDOM"
+      },
+      {
+        "command": "freedom.crawlWebDocs",
+        "title": "Crawl Web Documentation",
+        "category": "FREEDOM"
+      },
+      {
+        "command": "freedom.showHealth",
+        "title": "Show Platform Health",
+        "category": "FREEDOM"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "freedom.searchKnowledge",
+          "when": "editorHasSelection",
+          "group": "freedom"
+        },
+        {
+          "command": "freedom.generateCode",
+          "when": "editorHasSelection",
+          "group": "freedom"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "freedom.searchKnowledge",
+          "when": "true"
+        },
+        {
+          "command": "freedom.generateCode",
+          "when": "true"
+        },
+        {
+          "command": "freedom.getDocumentation",
+          "when": "true"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "FREEDOM Platform",
+      "properties": {
+        "freedom.apiGateway": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "FREEDOM Platform API Gateway URL"
+        },
+        "freedom.apiKey": {
+          "type": "string",
+          "default": "dev-key-change-in-production",
+          "description": "API Key for FREEDOM Platform authentication"
+        },
+        "freedom.enableRealtime": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time WebSocket communication"
+        },
+        "freedom.maxTokens": {
+          "type": "number",
+          "default": 200,
+          "description": "Maximum tokens for AI generation"
+        },
+        "freedom.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "AI model temperature (creativity level)"
+        },
+        "freedom.knowledgeLimit": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum number of knowledge results to return"
+        },
+        "freedom.similarityThreshold": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Minimum similarity score for knowledge results"
+        }
+      }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "freedomKnowledgeView",
+          "name": "FREEDOM Knowledge",
+          "when": "freedom.connected"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "freedom",
+          "title": "FREEDOM Platform",
+          "icon": "$(robot)"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "ws": "^8.14.0",
+    "axios": "^1.4.0"
+  }
+}

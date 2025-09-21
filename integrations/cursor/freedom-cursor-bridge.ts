@@ -354,3 +354,4 @@ export async function createFreedomIntegration(): Promise<FreedomCursorBridge> {
 
 // Export for Cursor plugin use
 export { FreedomCursorBridge, type CodeContext, type KnowledgeResult, type InferenceResponse };
+
