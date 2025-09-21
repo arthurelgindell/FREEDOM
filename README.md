@@ -177,8 +177,8 @@ python3 test_e2e_rag.py
 
 ### System Config
 - macOS **Tahoe 26.x+**  
-- **Apple Silicon** (Mac Studio M3 Ultra 2025:  80Core GPU 512GB, 30 CPU, 16TB SSD)  
-- Python **latest+**  
+- **Apple Silicon** alpha:(Mac Studio M3 Ultra 2025:  80Core GPU 512GB RAM, 30 CPU, 16TB SSD), beta (Mac Studio M3 Ultra 2025:  80Core GPU, 256GB RAM, 30 CPU, 16TB SSD)
+- Python **latest+**    
 - Xcode **16.2+** with Swift 6.2 (optional)  
 
 
@@ -186,7 +186,7 @@ python3 test_e2e_rag.py
 ### Installation
 
 ```bash
-cd FREEDOM
+cd /Volumes/DATA/FREEDOM
 
 # Python environment
 python3 -m venv .venv
@@ -222,7 +222,6 @@ python tests/performance/mlx_performance_test.py
 
 | Model          | Speed (tokens/sec) | Memory | Accuracy | Status |
 |----------------|---------------------|--------|----------|---------|
-| Devstral-Small | 268.5               | 4.2GB  | 92.3%    | ✅ |
 | Qwen3-30B      | 89.7                | 12.8GB | 96.7%    | ✅ |
 | Local Inference| 156.2 avg           | 8.5GB  | 94.5%    | ✅ |
 
