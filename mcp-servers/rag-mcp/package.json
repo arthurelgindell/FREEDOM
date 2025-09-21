@@ -1,0 +1,14 @@
+{
+  "name": "freedom-rag-mcp",
+  "version": "1.0.0",
+  "description": "RAG (Retrieval-Augmented Generation) MCP server for FREEDOM platform",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axios": "^1.7.9"
+  }
+}

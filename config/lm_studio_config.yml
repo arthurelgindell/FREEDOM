@@ -1,0 +1,63 @@
+# LM Studio Configuration for FREEDOM Platform
+# Generated: 2025-09-20
+
+lm_studio:
+  enabled: true
+  host: "localhost"
+  port: 1234
+  base_url: "http://localhost:1234/v1"
+  
+  # Available models in FREEDOM Platform
+  models:
+    qwen3_30b:
+      name: "qwen3-30b-a3b-instruct-2507-mlx"
+      path: "./models/lmstudio-community/Qwen3-30B-A3B-Instruct-2507-MLX-4bit"
+      architecture: "Qwen3MoeForCausalLM"
+      quantization: "4-bit"
+      context_length: 262144
+      capabilities:
+        - "code_generation"
+        - "instruction_following"
+        - "multilingual"
+        - "reasoning"
+      performance:
+        tokens_per_second: 57.95
+        memory_usage: "16GB"
+        
+    ui_tars:
+      name: "ui-tars-1.5-7b-mlx"
+      path: "./models/portalAI/UI-TARS-1.5-7B-mlx-bf16"
+      architecture: "LlamaForCausalLM"
+      quantization: "bf16"
+      context_length: 4096
+      capabilities:
+        - "ui_automation"
+        - "task_assistance"
+        - "code_generation"
+      performance:
+        tokens_per_second: 268.22
+        memory_usage: "8GB"
+
+  # Fallback configuration
+  fallback:
+    enabled: true
+    primary_model: "qwen3_30b"
+    backup_model: "ui_tars"
+    timeout_seconds: 30
+    retry_attempts: 3
+
+  # Integration settings
+  integration:
+    mlx_proxy: true
+    api_gateway: true
+    health_check_interval: 30
+    auto_model_switching: true
+    
+  # Performance optimization
+  optimization:
+    batch_size: 1
+    temperature: 0.7
+    max_tokens: 2048
+    top_p: 0.9
+    frequency_penalty: 0.0
+    presence_penalty: 0.0
