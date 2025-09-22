@@ -169,11 +169,22 @@ bash scripts/verify_crawl_stack.sh  # Tests router, firecrawl, playwright
 
 ### Database Operations
 ```bash
-# Connect to main database
-PGPASSWORD=freedom_dev psql -h localhost -U freedom -d freedom_kb
+# Query main database (freedom_kb)
+docker exec freedom-postgres-1 psql -U freedom -d freedom_kb -c "SELECT * FROM technologies;"
 
-# Check techknowledge tables
-PGPASSWORD=freedom_dev psql -h localhost -U freedom -d techknowledge -c "\dt"
+# Query techknowledge database (702 specifications, 22 technologies)
+docker exec freedom-postgres-1 psql -U freedom -d techknowledge -c "SELECT * FROM specifications WHERE technology_id = (SELECT id FROM technologies WHERE name = 'anthropic');"
+
+# Interactive database shell
+docker exec -it freedom-postgres-1 psql -U freedom -d techknowledge
+
+# List all tables
+docker exec freedom-postgres-1 psql -U freedom -d techknowledge -c "\dt"
+
+# Search specifications by content
+docker exec freedom-postgres-1 psql -U freedom -d techknowledge -c "SELECT t.name, s.component_name FROM specifications s JOIN technologies t ON s.technology_id = t.id WHERE specification::text ILIKE '%search_term%';"
+
+# Note: techknowledge service (port 8002) only provides /health endpoint - use direct database queries
 ```
 
 ## Verification Evidence

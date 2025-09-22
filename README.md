@@ -705,6 +705,28 @@ See [MCP_SETUP_GUIDE.md](documents/MCP_SETUP_GUIDE_20250921_1800.md) for detaile
 
 ---
 
+## 🗄️ Database Operations
+
+### Quick Database Access
+
+```bash
+# Query techknowledge database (702 specifications)
+docker exec freedom-postgres-1 psql -U freedom -d techknowledge -c "SELECT name FROM technologies;"
+
+# Query freedom_kb database
+docker exec freedom-postgres-1 psql -U freedom -d freedom_kb -c "SELECT * FROM health_check;"
+
+# Search specifications
+docker exec freedom-postgres-1 psql -U freedom -d techknowledge -c "SELECT t.name, s.component_name FROM specifications s JOIN technologies t ON s.technology_id = t.id WHERE specification::text ILIKE '%mcp%';"
+
+# Interactive shell
+docker exec -it freedom-postgres-1 psql -U freedom -d techknowledge
+```
+
+**Note**: TechKnowledge service (port 8002) only provides `/health` endpoint. Use direct database queries for data access.
+
+---
+
 ## 🔄 Container Persistence & Auto-Startup
 
 The FREEDOM platform is configured for 24/7 operation with automatic recovery from system reboots.
