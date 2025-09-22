@@ -129,9 +129,10 @@ The FREEDOM RAG system provides intelligent document chunking, embedding generat
 ### Current Status
 - **API Endpoint**: `http://localhost:5003`
 - **Database**: PostgreSQL (`techknowledge`)
-- **Total Chunks**: 2,425 documents indexed (100% with embeddings)
-- **Technologies**: cursor (895), lmstudio (529), slack (277), anthropic (248), langgraph (111)
-- **Status**: ✅ OPERATIONAL with LM Studio embeddings
+- **Total Chunks**: 3 test chunks indexed (with 768-dim embeddings)
+- **Technologies**: 22 restored (anthropic, docker, gemini, lmstudio, openai, slack, etc.)
+- **Specifications**: 702 technical specifications
+- **Status**: ✅ RESTORED - Ready for full document processing
 
 ### Key Features
 - **Local-First Embeddings**: LM Studio primary (16.2x faster than OpenAI)
@@ -182,7 +183,10 @@ python3 test_e2e_rag.py
 - **Apple Silicon** alpha:(Mac Studio M3 Ultra 2025:  80Core GPU 512GB RAM, 30 CPU, 16TB SSD), beta (Mac Studio M3 Ultra 2025:  80Core GPU, 256GB RAM, 30 CPU, 16TB SSD)
 - Python **latest+**    
 - Xcode **16.2+** with Swift 6.2 (optional)  
-
+- Docker
+- Firecrawl
+- Postgres
+- Langraph
 
 
 ### Installation
@@ -335,7 +339,7 @@ Preflight verifies:
 | **API Gateway** | 8080 | ✅ VERIFIED | Service orchestration, auth, metrics |
 | **Knowledge Base** | internal | ✅ FUNCTIONAL | Vector search with pgvector embeddings |
 | **MLX Proxy** | 8001 | ✅ CONNECTED | Inference proxy with LM Studio fallback |
-| **TechKnowledge** | 8002 | ✅ ACTIVE | 22 technologies, 702 specifications |
+| **TechKnowledge** | 8002 | ✅ RESTORED | 22 technologies, 702 specifications |
 | **PostgreSQL** | 5432 | ✅ ACTIVE | pgvector enabled, multi-database |
 | **Castle GUI** | 3000 | ✅ SERVING | Next.js React frontend |
 | **Host MLX Server** | 8000 | ❌ NOT RUNNING | Would run MLX models if started |
@@ -391,8 +395,9 @@ Crawl Stack Flow:
 #### Knowledge Base Service (`services/kb/`)
 - **Vector Storage**: PostgreSQL with pgvector extension
 - **Embeddings**:
-  - Primary: OpenAI text-embedding-ada-002 (1536 dims)
-  - Fallback: Local deterministic embeddings
+  - Primary: LM Studio nomic-embed-text-v1.5 (768 dims)
+  - Fallback 1: OpenAI text-embedding-ada-002 (1536 dims)
+  - Fallback 2: Gemini text-embedding-004 (768 dims)
 - **Similarity Search**: Vector-based content retrieval
 - **Async Operations**: High-performance asyncpg pooling
 
@@ -478,9 +483,10 @@ open http://localhost:8002/docs  # TechKnowledge API
 
 ### Platform Status: FULL Functionality and workflow status based on functional testing and audited for verification
 
-**⚠️ Platform Operational Status (2025-09-22T07:15:00Z):**
+**⚠️ Platform Operational Status (2025-09-22T06:50:00Z):**
 - All 10 Docker containers: **RUNNING**
-- Health checks: **MIXED** (7/10 healthy, 3 functional but unhealthy)
+- TechKnowledge Database: **RESTORED** (22 technologies, 702 specs)
+- RAG System: **CONFIGURED** (768-dim vectors, LM Studio embeddings)
 - Service connectivity: **VERIFIED**
 - Graceful degradation: **FUNCTIONAL** (LM Studio fallback active)
 - Prime Directive: **"If it doesn't run, it doesn't exist"** – **MET**
@@ -673,10 +679,10 @@ See [MCP_SETUP_GUIDE.md](documents/MCP_SETUP_GUIDE_20250921_1800.md) for detaile
 ## ⚠️ Known Issues (As of 2025-09-22)
 
 ### Current State
-1. **Castle GUI** - Responds 200 OK but healthcheck reports unhealthy (healthcheck.js not found)
+1. **Castle GUI** - Responds 200 OK but healthcheck reports unhealthy (healthcheck.js created, needs rebuild)
 2. **MLX host server** - Not running on port 8000 (not needed - LM Studio handles inference)
 3. **Test scripts** - smoke_test.py referenced in Makefile doesn't exist
-4. **Container count** - 10 containers running (not 6 as some sections state)
+4. **RAG Processing** - Only 3 test chunks processed, remaining 702 specs need full chunking/embedding
 
 ---
 
