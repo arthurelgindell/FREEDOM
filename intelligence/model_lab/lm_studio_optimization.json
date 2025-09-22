@@ -1,0 +1,30 @@
+{
+  "timestamp": 1757654224.22113,
+  "comparison": {
+    "mlx_direct": {
+      "success": true,
+      "total_time": 0.10439229011535645,
+      "token_count": 28,
+      "tokens_per_second": 268.2190415504747,
+      "response": "I hope you are doing well and have a great day. I am here to help you with any questions you may hav..."
+    },
+    "lm_studio": {
+      "success": true,
+      "total_time": 0.3796360492706299,
+      "token_count": 22,
+      "tokens_per_second": 57.950239557774275,
+      "response": "Hello! I'm functioning well, thank you for asking! \ud83d\ude0a I'm here and ready to help you with whatever yo..."
+    },
+    "comparison": {
+      "winner": "MLX Direct",
+      "advantage": "362.8% faster",
+      "mlx_speed": 268.2190415504747,
+      "lm_speed": 57.950239557774275
+    }
+  },
+  "optimization": {
+    "lm_studio_running": true,
+    "model_count": 3,
+    "optimizations_applied": true
+  }
+}

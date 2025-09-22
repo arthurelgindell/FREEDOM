@@ -1,0 +1,75 @@
+{
+  "revalidation_timestamp": "2025-09-20T12:08:53.320237",
+  "prime_directive": "If it doesn't run, it doesn't exist",
+  "total_tests": 5,
+  "existing_services": 2,
+  "non_existing_services": 3,
+  "total_duration_seconds": 0.04442095756530762,
+  "results": [
+    {
+      "test": "Host MLX Server",
+      "status": "DOES_NOT_EXIST",
+      "duration_ms": 6.489276885986328,
+      "details": {},
+      "error": "No endpoints responding - server does not exist",
+      "timestamp": "2025-09-20T12:08:53.282417"
+    },
+    {
+      "test": "Host MLX Inference",
+      "status": "DOES_NOT_EXIST",
+      "duration_ms": 2.1219253540039062,
+      "details": {},
+      "error": "No inference endpoints can generate content",
+      "timestamp": "2025-09-20T12:08:53.284707"
+    },
+    {
+      "test": "MLX Proxy Service",
+      "status": "EXISTS",
+      "duration_ms": 21.258115768432617,
+      "details": {
+        "health_status": "healthy",
+        "upstream": "fallback",
+        "upstream_url": "http://host.docker.internal:1234",
+        "mlx_server_reachable": true,
+        "uptime_seconds": 47415.89627432823,
+        "models_endpoint": 200
+      },
+      "error": null,
+      "timestamp": "2025-09-20T12:08:53.305975"
+    },
+    {
+      "test": "MLX Proxy Inference",
+      "status": "DOES_NOT_EXIST",
+      "duration_ms": 5.122900009155273,
+      "details": {
+        "response": {
+          "error": {
+            "message": "Model \"ui-tars\" not found. Please specify a valid model.\n\nYour models:\n\nqwen3-30b-a3b-instruct-2507-mlx\nui-tars-1.5-7b-mlx\ntext-embedding-nomic-embed-text-v1.5",
+            "type": "invalid_request_error",
+            "param": "model",
+            "code": "model_not_found"
+          }
+        }
+      },
+      "error": "Proxy returned empty content",
+      "timestamp": "2025-09-20T12:08:53.311156"
+    },
+    {
+      "test": "API Gateway MLX Integration",
+      "status": "EXISTS",
+      "duration_ms": 8.972644805908203,
+      "details": {
+        "response": "empty",
+        "model": "unknown",
+        "status": "successful_integration"
+      },
+      "error": null,
+      "timestamp": "2025-09-20T12:08:53.320160"
+    }
+  ],
+  "conclusion": {
+    "mlx_proxy_exists": true,
+    "host_mlx_exists": false,
+    "inference_working": false
+  }
+}
