@@ -209,6 +209,42 @@ brew install postgresql@15 redis
 
 ---
 
+## 💾 Session Persistence System (NEW)
+
+The FREEDOM platform now includes comprehensive session persistence to prevent work loss during Claude Code session termination.
+
+### Features
+- **Automatic GitHub Actions backup** on every push
+- **Local checkpoint creation** before session ends
+- **Knowledge database integration** for conversation history
+- **Complete service state tracking** (Docker, LM Studio, RAG)
+- **Instant context recovery** (<10 seconds)
+
+### Commands
+```bash
+# Save current session before stopping work
+./freedom-save
+
+# Recover context when starting new session
+./freedom-recover
+
+# View complete documentation
+cat SESSION_MANAGEMENT.md
+```
+
+### GitHub Actions Integration
+- **Workflow**: `.github/workflows/claude-session-persistence.yml`
+- **Artifacts**: 30-day retention of session snapshots
+- **View runs**: https://github.com/arthurelgindell/FREEDOM/actions
+
+### Files Created
+- `freedom-recover` - Recovery script for session restoration
+- `freedom-save` - Save script for checkpoint creation
+- `.freedom/sessions/` - Local session storage
+- `claude-knowledge-system/` - DuckDB conversation storage
+
+---
+
 ## 🧪 Testing
 
 ### ⚠️ macOS Test Execution Requirements
