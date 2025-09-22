@@ -460,9 +460,9 @@ open http://localhost:8002/docs  # TechKnowledge API
 
 ### Platform Status: FULL Functionality and workflow status based on functional testing and audited for verification
 
-**✅ Platform Operational Status (2025-09-20T03:05:00Z):**
-- All 6 Docker containers: **RUNNING**
-- Health checks: **PASSING** (5/6, Castle GUI functional despite unhealthy flag)
+**⚠️ Platform Operational Status (2025-09-22T07:15:00Z):**
+- All 10 Docker containers: **RUNNING**
+- Health checks: **MIXED** (7/10 healthy, 3 functional but unhealthy)
 - Service connectivity: **VERIFIED**
 - Graceful degradation: **FUNCTIONAL** (LM Studio fallback active)
 - Prime Directive: **"If it doesn't run, it doesn't exist"** – **MET**
@@ -470,7 +470,7 @@ open http://localhost:8002/docs  # TechKnowledge API
 ### Detailed Service Verification Results
 
 #### 1. Docker Infrastructure
-- **Container Count**: 6 active containers
+- **Container Count**: 10 active containers (not 6 as previously stated)
 - **Health Status**: All containers reporting healthy
 - **Network**: Bridge network `freedom_default` operational
 - **Volume Persistence**: PostgreSQL data volume mounted and active
@@ -649,6 +649,36 @@ cd services/rag_chunker && python3 rag_api.py  # Start RAG API
 ```
 
 See [MCP_SETUP_GUIDE.md](documents/MCP_SETUP_GUIDE_20250921_1800.md) for detailed configuration instructions.
+
+---
+
+## ⚠️ Known Issues (As of 2025-09-22)
+
+### Current Problems
+1. **Castle GUI healthcheck** - Returns unhealthy but service works (healthcheck.js missing)
+2. **MLX host server** - Not running on port 8000 (LM Studio fallback working)
+3. **Test scripts missing** - Referenced smoke_test.py doesn't exist
+4. **README accuracy** - Multiple claims don't match reality (being fixed)
+
+### Audit Findings
+- PostgreSQL initially had missing 'freedom' role (now fixed)
+- Container count was wrong (10 not 6)
+- Service ports incorrectly documented
+- Test commands reference non-existent scripts
+
+---
+
+## 🔄 Container Persistence & Auto-Startup
+
+The FREEDOM platform is configured for 24/7 operation with automatic recovery from system reboots.
+
+### Persistence Configuration
+
+| Mechanism | Purpose | Configuration | Status |
+|-----------|---------|--------------|--------|
+| **Docker Restart Policies** | Auto-restart on Docker start | `restart: unless-stopped` on all services | ✅ Active |
+| **macOS LaunchAgent** | Start containers after boot | `com.freedom.docker-startup` runs every 300s | ✅ Installed |
+| **Docker Desktop** | Auto-start on login | Added to macOS login items | ✅ Configured |
 
 ---
 
