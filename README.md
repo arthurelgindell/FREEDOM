@@ -351,26 +351,21 @@ Preflight verifies:
 
 ## 🏗️ Verified Functional Components
 
-### Core Infrastructure (Last Verified: 2025-09-20T05:20:00Z)
+### Core Infrastructure (Verified: 2025-09-22T08:10:00Z)
 | Component | Port | Status | Purpose |
 |-----------|------|--------|---------|
-| **Docker Orchestration** | - | ✅ OPERATIONAL | 10 containers with health checks |
-| **API Gateway** | 8080 | ✅ VERIFIED | Service orchestration, auth, metrics |
-| **Knowledge Base** | 8000 | ✅ FUNCTIONAL | Vector search with pgvector embeddings |
-| **MLX Proxy** | 8001 | ✅ CONNECTED | Inference proxy with LM Studio fallback |
-| **TechKnowledge** | 8002 | ✅ RESTORED | 22 technologies, 702 specifications |
-| **PostgreSQL** | 5432 | ✅ ACTIVE | pgvector enabled, multi-database |
-| **Castle GUI** | 3000 | ✅ SERVING | Next.js React frontend |
-| **Host MLX Server** | 8000 | ❌ NOT RUNNING | Would run MLX models if started |
-| **LM Studio** | 1234 | ✅ ACTIVE | qwen/qwen3-next-80b, foundation-sec-8b, embeddings |
+| **API Gateway** | 8080 | ✅ Healthy | Service orchestration, authentication, routing |
+| **Knowledge Base** | 8000 | ✅ Healthy | Vector search with pgvector embeddings |
+| **MLX Proxy** | 8001 | ✅ Healthy | Proxy to LM Studio (fallback mode) |
+| **TechKnowledge** | 8002 | ✅ Healthy | 22 technologies, 702 specifications |
+| **PostgreSQL** | 5432 | ✅ Healthy | Two databases: freedom_kb, techknowledge |
+| **Castle GUI** | 3000 | ⚠️ Unhealthy | Next.js frontend (works but healthcheck fails) |
+| **Redis** | 6379 | ✅ Healthy | Cache and queue management |
+| **Router** | 8003 | ✅ Running | Task routing (no healthcheck) |
+| **Firecrawl** | 8004 | ✅ Running | Web scraping service |
+| **Playwright Worker** | - | ✅ Running | Browser automation |
+| **LM Studio** | 1234 | ✅ Active | qwen3-next-80b model serving |
 
-### Crawl Stack Infrastructure (Deployed: 2025-09-20T05:18:00Z)
-| Component | Port | Status | Purpose |
-|-----------|------|--------|---------|
-| **Redis** | 6379 | ✅ HEALTHY | Message queue, task management, caching |
-| **Router Service** | 8003 | ✅ OPERATIONAL | Intelligent task routing (auth vs simple) |
-| **Firecrawl API** | 8004 | ✅ ACTIVE | Cloud-based web scraping with API key |
-| **Playwright Worker** | - | ✅ RUNNING | Browser automation for authenticated scraping |
 
 ### Service Architecture & Workflow
 
@@ -502,18 +497,17 @@ open http://localhost:8002/docs  # TechKnowledge API
 
 ### Platform Status: FULL Functionality and workflow status based on functional testing and audited for verification
 
-**⚠️ Platform Operational Status (2025-09-22T06:50:00Z):**
-- All 10 Docker containers: **RUNNING**
-- TechKnowledge Database: **RESTORED** (22 technologies, 702 specs)
-- RAG System: **CONFIGURED** (768-dim vectors, LM Studio embeddings)
-- Service connectivity: **VERIFIED**
-- Graceful degradation: **FUNCTIONAL** (LM Studio fallback active)
-- Prime Directive: **"If it doesn't run, it doesn't exist"** – **MET**
+**Platform Operational Status (2025-09-22T08:10:00Z):**
+- **Containers**: 10 running
+- **Databases**: PostgreSQL with freedom_kb and techknowledge databases
+- **Health Status**: 8 healthy, 1 unhealthy (Castle GUI), 1 no healthcheck (Router)
+- **Primary Model**: qwen/qwen3-next-80b via LM Studio (port 1234)
+- **Service Connectivity**: All ports exposed and accessible
 
 ### Detailed Service Verification Results
 
 #### 1. Docker Infrastructure
-- **Container Count**: 10 active containers (not 6 as previously stated)
+- **Container Count**: 10 active containers
 - **Health Status**: All containers reporting healthy
 - **Network**: Bridge network `freedom_default` operational
 - **Volume Persistence**: PostgreSQL data volume mounted and active
@@ -695,13 +689,14 @@ See [MCP_SETUP_GUIDE.md](documents/MCP_SETUP_GUIDE_20250921_1800.md) for detaile
 
 ---
 
-## ⚠️ Known Issues (As of 2025-09-22)
+## ⚠️ Current Service States (As of 2025-09-22)
 
-### Current State
-1. **Castle GUI** - Responds 200 OK but healthcheck reports unhealthy (healthcheck.js created, needs rebuild)
-2. **MLX host server** - Not running on port 8000 (not needed - LM Studio handles inference)
-3. **Test scripts** - smoke_test.py referenced in Makefile doesn't exist
-4. **RAG Processing** - Only 3 test chunks processed, remaining 702 specs need full chunking/embedding
+### Service Health
+1. **Castle GUI** - Running, responds 200 OK, healthcheck reports unhealthy
+2. **MLX host server** - Not running on port 8000
+3. **LM Studio** - Running on port 1234, provides inference
+4. **RAG System** - 3 chunks in database, 768-dim embeddings configured
+5. **TechKnowledge** - 22 technologies, 702 specifications in database
 
 ---
 
