@@ -224,8 +224,9 @@ python tests/performance/mlx_performance_test.py
 
 | Model          | Speed (tokens/sec) | Memory | Accuracy | Status |
 |----------------|---------------------|--------|----------|---------|
-| Qwen3-30B      | 89.7                | 12.8GB | 96.7%    | ✅ |
-| Local Inference| 156.2 avg           | 8.5GB  | 94.5%    | ✅ |
+| Qwen3-Next-80B | ~50-80              | ~40GB  | 98%+     | ✅ Active |
+| Qwen3-30B      | 89.7                | 12.8GB | 96.7%    | ✅ Available |
+| Foundation-Sec-8B | ~150             | 8GB    | 92%      | ✅ Available |
 
 ---
 
@@ -320,8 +321,8 @@ Preflight verifies:
 | **TechKnowledge** | 8002 | ✅ ACTIVE | 22 technologies, 702 specifications |
 | **PostgreSQL** | 5432 | ✅ ACTIVE | pgvector enabled, multi-database |
 | **Castle GUI** | 3000 | ✅ SERVING | Next.js React frontend |
-| **Host MLX Server** | 8000 | ✅ RUNNING | nanoLLaVA-1.5-8bit model |
-| **LM Studio** | 1234 | ✅ FALLBACK | UI-TARS-1.5-7B-mlx backup |
+| **Host MLX Server** | 8000 | ❌ NOT RUNNING | Would run MLX models if started |
+| **LM Studio** | 1234 | ✅ ACTIVE | qwen/qwen3-next-80b, foundation-sec-8b, embeddings |
 
 ### Crawl Stack Infrastructure (Deployed: 2025-09-20T05:18:00Z)
 | Component | Port | Status | Purpose |
@@ -346,7 +347,7 @@ User Request Flow:
 [PostgreSQL]  [Host MLX :8000]    [PostgreSQL]
   pgvector      ↓ fallback ↓        22 techs
             [LM Studio :1234]      702 specs
-              UI-TARS-1.5-7B
+              qwen3-next-80b
 
 Crawl Stack Flow:
 
@@ -379,8 +380,8 @@ Crawl Stack Flow:
 - **Async Operations**: High-performance asyncpg pooling
 
 #### MLX Inference (`services/mlx/` + host)
-- **Primary Model**: nanoLLaVA-1.5-8bit (port 8000)
-- **Fallback Model**: UI-TARS-1.5-7B via LM Studio (port 1234)
+- **Current Model**: qwen/qwen3-next-80b via LM Studio (port 1234)
+- **Available Models**: foundation-sec-8b, qwen3-30b-a3b-instruct
 - **Auto-Failover**: Seamless switch to LM Studio when primary unavailable
 - **Proxy Pattern**: Docker container → Host MLX/LM Studio
 - **Response Transformation**: OpenAI format ↔ MLX format
@@ -521,7 +522,7 @@ open http://localhost:8002/docs  # TechKnowledge API
 - **Response**: Returns 200 OK on root path
 
 #### 7. Host MLX Server (Port 8000)
-- **Model**: UI-TARS-1.5-7B-mlx-bf16
+- **Model**: NOT RUNNING (would use MLX models if started)
 - **Server**: mlx-vlm server
 - **Performance Metrics**:
   - Generation speed: 408+ tokens/second
@@ -573,7 +574,7 @@ freedom-castle-gui-1  Up             0.0.0.0:3000->3000/tcp
 ```json
 {
   "text": "Hello! How can I help you today?",
-  "model": "mlx-community/nanoLLaVA-1.5-8bit",
+  "model": "qwen/qwen3-next-80b",
   "usage": {
     "input_tokens": 16,
     "output_tokens": 10,
@@ -656,7 +657,7 @@ See [MCP_SETUP_GUIDE.md](documents/MCP_SETUP_GUIDE_20250921_1800.md) for detaile
 
 ### Current Problems
 1. **Castle GUI healthcheck** - Returns unhealthy but service works (healthcheck.js missing)
-2. **MLX host server** - Not running on port 8000 (LM Studio fallback working)
+2. **MLX host server** - Not running on port 8000 (LM Studio on 1234 is primary, not fallback)
 3. **Test scripts missing** - Referenced smoke_test.py doesn't exist
 4. **README accuracy** - Multiple claims don't match reality (being fixed)
 
