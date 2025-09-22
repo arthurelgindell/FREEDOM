@@ -1,5 +1,7 @@
 # 🚀 FREEDOM Platform
 
+**⚠️ CRITICAL: Always update this README after successful implementations! See [WORKFLOW_STANDARD.md](WORKFLOW_STANDARD.md)**
+
 **Optimize for local system performance where possible**
 
 > **"Freedom is not permission. It is the fundamental condition of truth, innovation, and creation."**
