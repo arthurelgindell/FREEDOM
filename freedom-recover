@@ -1,0 +1,264 @@
+#!/bin/bash
+
+# FREEDOM Session Recovery System
+# Reconstructs context from previous Claude sessions using GitHub Actions artifacts
+# and local knowledge database
+
+set -euo pipefail
+
+# Configuration
+FREEDOM_ROOT="/Volumes/DATA/FREEDOM"
+KNOWLEDGE_DB="$FREEDOM_ROOT/claude-knowledge-system"
+SESSIONS_DIR="$FREEDOM_ROOT/.freedom/sessions"
+RECOVERY_LOG="$FREEDOM_ROOT/.freedom/recovery.log"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Helper functions
+log() {
+    echo -e "${GREEN}[$(date +%H:%M:%S)]${NC} $1"
+    echo "[$(date)] $1" >> "$RECOVERY_LOG"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1" >&2
+    echo "[ERROR] $1" >> "$RECOVERY_LOG"
+}
+
+warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+    echo "[WARNING] $1" >> "$RECOVERY_LOG"
+}
+
+info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+# Create necessary directories
+mkdir -p "$SESSIONS_DIR"
+mkdir -p "$(dirname "$RECOVERY_LOG")"
+
+# ASCII art header
+cat << "EOF"
+╔══════════════════════════════════════════════════════════════╗
+║                   FREEDOM SESSION RECOVERY                   ║
+║              Reconstructing Context & State                  ║
+╚══════════════════════════════════════════════════════════════╝
+EOF
+
+echo ""
+log "Starting session recovery process..."
+
+# 1. Check Git Status
+info "📊 Git Repository Status"
+cd "$FREEDOM_ROOT"
+
+CURRENT_BRANCH=$(git branch --show-current)
+LATEST_COMMIT=$(git log -1 --format="%h %s" 2>/dev/null || echo "No commits")
+UNCOMMITTED=$(git status --porcelain | wc -l | xargs)
+
+echo "  Branch: $CURRENT_BRANCH"
+echo "  Latest: $LATEST_COMMIT"
+echo "  Uncommitted changes: $UNCOMMITTED files"
+
+if [ "$UNCOMMITTED" -gt 0 ]; then
+    warning "You have uncommitted changes. Consider committing or stashing them."
+    echo ""
+    git status --short | head -10
+fi
+
+echo ""
+
+# 2. Download Latest GitHub Actions Artifacts
+info "🌐 Checking GitHub Actions Artifacts"
+
+if command -v gh &> /dev/null; then
+    # Get latest successful workflow run
+    LATEST_RUN=$(gh run list --workflow=claude-session-persistence.yml --status=success --limit=1 --json databaseId,createdAt,headBranch --jq '.[0]' 2>/dev/null || echo "")
+
+    if [ -n "$LATEST_RUN" ] && [ "$LATEST_RUN" != "null" ]; then
+        RUN_ID=$(echo "$LATEST_RUN" | jq -r '.databaseId')
+        RUN_DATE=$(echo "$LATEST_RUN" | jq -r '.createdAt')
+        RUN_BRANCH=$(echo "$LATEST_RUN" | jq -r '.headBranch')
+
+        log "Found workflow run #$RUN_ID from $RUN_DATE (branch: $RUN_BRANCH)"
+
+        # Download artifacts to temp directory
+        TEMP_DIR=$(mktemp -d)
+        if gh run download "$RUN_ID" --dir "$TEMP_DIR" 2>/dev/null; then
+            # Copy session files
+            if [ -d "$TEMP_DIR" ]; then
+                find "$TEMP_DIR" -name "*.md" -o -name "*.json" -o -name "*.sh" | while read -r file; do
+                    cp "$file" "$SESSIONS_DIR/" 2>/dev/null || true
+                done
+                log "Downloaded session artifacts successfully"
+            fi
+            rm -rf "$TEMP_DIR"
+        else
+            warning "Could not download artifacts (may need authentication)"
+        fi
+    else
+        warning "No successful workflow runs found"
+    fi
+else
+    warning "GitHub CLI not installed or not authenticated"
+    echo "  Install: brew install gh"
+    echo "  Login: gh auth login"
+fi
+
+echo ""
+
+# 3. Check Knowledge Database
+info "📚 Knowledge Database Status"
+
+if [ -f "$KNOWLEDGE_DB/claude_knowledge_db.py" ]; then
+    cd "$KNOWLEDGE_DB"
+
+    # Get database stats
+    DB_STATS=$(python3 claude_knowledge_db.py stats 2>/dev/null || echo "Database not initialized")
+    echo "$DB_STATS" | head -5
+
+    # Search for recent context
+    if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ]; then
+        echo ""
+        echo "  Searching for context about: $CURRENT_BRANCH"
+        python3 claude_knowledge_db.py search "$CURRENT_BRANCH" 2>/dev/null | head -10 || true
+    fi
+
+    cd "$FREEDOM_ROOT"
+else
+    warning "Knowledge database system not found"
+fi
+
+echo ""
+
+# 4. Check Docker Services
+info "🐳 Docker Services Status"
+
+if docker info &> /dev/null; then
+    RUNNING_CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | tail -n +2)
+    if [ -n "$RUNNING_CONTAINERS" ]; then
+        echo "$RUNNING_CONTAINERS" | while IFS= read -r line; do
+            echo "  $line"
+        done
+    else
+        warning "No Docker containers running"
+        echo "  Start with: make up"
+    fi
+else
+    error "Docker not running"
+fi
+
+echo ""
+
+# 5. Check LM Studio
+info "🤖 LM Studio Status"
+
+if curl -s http://localhost:1234/v1/models --max-time 2 &> /dev/null; then
+    MODEL_INFO=$(curl -s http://localhost:1234/v1/models | jq -r '.data[0].id' 2>/dev/null || echo "unknown")
+    log "LM Studio active with model: $MODEL_INFO"
+else
+    warning "LM Studio not responding on port 1234"
+    echo "  Start LM Studio and load: qwen/qwen3-next-80b"
+fi
+
+echo ""
+
+# 6. Check RAG API
+info "🔍 RAG System Status"
+
+if curl -s http://localhost:5003/health --max-time 2 &> /dev/null; then
+    log "RAG API is running on port 5003"
+else
+    warning "RAG API not running"
+    echo "  Start with: cd services/rag_chunker && python3 rag_api.py"
+fi
+
+echo ""
+
+# 7. Generate Recovery Summary
+info "📝 Generating Recovery Summary"
+
+SUMMARY_FILE="$SESSIONS_DIR/recovery-$(date +%Y%m%d-%H%M%S).md"
+
+cat > "$SUMMARY_FILE" << EOF
+# FREEDOM Session Recovery Summary
+Generated: $(date)
+
+## Repository State
+- Branch: $CURRENT_BRANCH
+- Latest Commit: $LATEST_COMMIT
+- Uncommitted Changes: $UNCOMMITTED files
+
+## Recent Work (Last 10 Commits)
+\`\`\`
+$(git log --oneline -10)
+\`\`\`
+
+## Service Status
+- Docker: $(docker info &> /dev/null && echo "✅ Running" || echo "❌ Not Running")
+- LM Studio: $(curl -s http://localhost:1234/v1/models --max-time 1 &> /dev/null && echo "✅ Active" || echo "❌ Inactive")
+- RAG API: $(curl -s http://localhost:5003/health --max-time 1 &> /dev/null && echo "✅ Active" || echo "❌ Inactive")
+- PostgreSQL: $(docker exec freedom-postgres-1 pg_isready &> /dev/null && echo "✅ Ready" || echo "❌ Not Ready")
+
+## Next Steps
+1. Review uncommitted changes: \`git status\`
+2. Check recent work: \`git log --oneline -20\`
+3. Start missing services: \`make up\`
+4. Run tests: \`make verify\`
+
+## Quick Commands
+\`\`\`bash
+# Start all services
+make up
+
+# Start RAG API
+cd services/rag_chunker && python3 rag_api.py
+
+# Check system health
+make health
+
+# Run knowledge DB search
+python3 claude-knowledge-system/claude_knowledge_db.py search "your topic"
+\`\`\`
+EOF
+
+log "Recovery summary saved to: $SUMMARY_FILE"
+
+echo ""
+
+# 8. Display Quick Recovery Actions
+cat << EOF
+╔══════════════════════════════════════════════════════════════╗
+║                    RECOVERY COMPLETE                         ║
+╚══════════════════════════════════════════════════════════════╝
+
+🎯 Quick Actions:
+
+1. View recovery summary:
+   ${GREEN}cat $SUMMARY_FILE${NC}
+
+2. Search knowledge base:
+   ${GREEN}cd claude-knowledge-system && python3 claude_knowledge_db.py search "topic"${NC}
+
+3. Start missing services:
+   ${GREEN}make up${NC}
+
+4. Continue previous work on branch:
+   ${GREEN}git checkout $CURRENT_BRANCH${NC}
+
+EOF
+
+# 9. Optional: Open summary in default editor
+read -p "Open recovery summary in editor? (y/n) " -n 1 -r
+echo ""
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    ${EDITOR:-vi} "$SUMMARY_FILE"
+fi
+
+log "Session recovery completed successfully"

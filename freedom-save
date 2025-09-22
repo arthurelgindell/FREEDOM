@@ -1,0 +1,192 @@
+#!/bin/bash
+
+# FREEDOM Session Save System
+# Captures current state before ending a Claude session
+
+set -euo pipefail
+
+FREEDOM_ROOT="/Volumes/DATA/FREEDOM"
+KNOWLEDGE_DB="$FREEDOM_ROOT/claude-knowledge-system"
+SESSIONS_DIR="$FREEDOM_ROOT/.freedom/sessions"
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+echo -e "${BLUE}     FREEDOM Session Save${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+echo ""
+
+cd "$FREEDOM_ROOT"
+
+# 1. Create session checkpoint
+echo -e "${GREEN}📸 Creating session checkpoint...${NC}"
+
+mkdir -p "$SESSIONS_DIR"
+CHECKPOINT_FILE="$SESSIONS_DIR/checkpoint-$TIMESTAMP.md"
+
+cat > "$CHECKPOINT_FILE" << EOF
+# Session Checkpoint
+Timestamp: $(date)
+Branch: $(git branch --show-current)
+User: $(whoami)
+Host: $(hostname)
+
+## Work Summary
+### Latest Commits (last 20)
+\`\`\`
+$(git log --oneline -20)
+\`\`\`
+
+### Uncommitted Changes
+\`\`\`
+$(git status --short)
+\`\`\`
+
+### Changed Files (last commit)
+\`\`\`
+$(git diff --name-status HEAD~1..HEAD 2>/dev/null || echo "No previous commit")
+\`\`\`
+
+## Active Services
+\`\`\`
+$(docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null || echo "Docker not running")
+\`\`\`
+
+## Open TODOs
+$(grep -r "TODO\|FIXME" --include="*.py" --include="*.md" services/ 2>/dev/null | head -10 || echo "None found")
+
+## Test Status
+$(if [ -f pytest.ini ]; then pytest --collect-only -q 2>/dev/null | tail -5 || echo "Tests not configured"; fi)
+EOF
+
+echo "  ✓ Checkpoint saved: $CHECKPOINT_FILE"
+
+# 2. Git operations
+echo -e "\n${GREEN}📦 Git Status...${NC}"
+
+UNCOMMITTED=$(git status --porcelain | wc -l | xargs)
+if [ "$UNCOMMITTED" -gt 0 ]; then
+    echo -e "${YELLOW}  ⚠ You have $UNCOMMITTED uncommitted changes${NC}"
+
+    read -p "  Create WIP commit? (y/n) " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        git add -A
+        git commit -m "WIP: Session checkpoint $TIMESTAMP
+
+Auto-saved by freedom-save before session end.
+Uncommitted work from $(date)
+
+Session state preserved in: $CHECKPOINT_FILE"
+        echo -e "${GREEN}  ✓ Created WIP commit${NC}"
+    else
+        echo "  Skipping commit (changes remain uncommitted)"
+    fi
+else
+    echo "  ✓ Working directory clean"
+fi
+
+# 3. Knowledge database ingestion
+echo -e "\n${GREEN}📚 Updating Knowledge Database...${NC}"
+
+if [ -f "$KNOWLEDGE_DB/claude_knowledge_db.py" ]; then
+    cd "$KNOWLEDGE_DB"
+
+    # Try to ingest recent conversations
+    if python3 claude_knowledge_db.py ingest 2>/dev/null; then
+        echo "  ✓ Knowledge database updated"
+    else
+        echo "  ℹ No new conversations to ingest"
+    fi
+
+    # Show current stats
+    python3 claude_knowledge_db.py stats 2>/dev/null | head -3
+
+    cd "$FREEDOM_ROOT"
+else
+    echo "  ⚠ Knowledge database not configured"
+fi
+
+# 4. Create recovery hint file
+echo -e "\n${GREEN}💡 Creating recovery hints...${NC}"
+
+HINTS_FILE="$SESSIONS_DIR/RECOVERY_HINTS.md"
+cat > "$HINTS_FILE" << EOF
+# Quick Recovery Commands
+
+## When starting next session:
+
+1. **Run recovery script:**
+   \`\`\`bash
+   ./freedom-recover
+   \`\`\`
+
+2. **Check last checkpoint:**
+   \`\`\`bash
+   cat $CHECKPOINT_FILE
+   \`\`\`
+
+3. **Resume work on branch:**
+   \`\`\`bash
+   git checkout $(git branch --show-current)
+   \`\`\`
+
+4. **Start services:**
+   \`\`\`bash
+   make up
+   cd services/rag_chunker && python3 rag_api.py
+   \`\`\`
+
+## Current Context:
+- Working on: $(git branch --show-current)
+- Last commit: $(git log -1 --format="%h %s")
+- Session saved: $(date)
+EOF
+
+echo "  ✓ Recovery hints saved"
+
+# 5. Push to GitHub (optional)
+echo -e "\n${GREEN}🌐 GitHub Sync...${NC}"
+
+UNPUSHED=$(git log origin/$(git branch --show-current)..HEAD 2>/dev/null | wc -l | xargs)
+if [ "$UNPUSHED" -gt 0 ]; then
+    echo -e "${YELLOW}  You have $UNPUSHED unpushed commits${NC}"
+
+    read -p "  Push to GitHub? (y/n) " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if git push origin $(git branch --show-current); then
+            echo -e "${GREEN}  ✓ Pushed to GitHub${NC}"
+            echo "  GitHub Actions will create recovery artifacts"
+        else
+            echo -e "${YELLOW}  ⚠ Push failed - check your connection${NC}"
+        fi
+    fi
+else
+    echo "  ✓ Already in sync with GitHub"
+fi
+
+# 6. Final summary
+echo -e "\n${BLUE}═══════════════════════════════════════${NC}"
+echo -e "${GREEN}✅ Session Saved Successfully!${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+
+cat << EOF
+
+📋 Summary:
+  • Checkpoint: $CHECKPOINT_FILE
+  • Branch: $(git branch --show-current)
+  • Saved at: $(date +"%H:%M:%S")
+
+🔄 To recover this session later:
+  ${GREEN}./freedom-recover${NC}
+
+💡 Recovery hints saved to:
+  ${GREEN}$HINTS_FILE${NC}
+
+EOF

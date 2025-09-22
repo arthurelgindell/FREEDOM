@@ -1,0 +1,192 @@
+# Claude Session Persistence Workflow
+# Captures session state and creates recovery artifacts
+# Uses Personal Access Token for authentication
+
+name: Claude Session Persistence
+
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+      - session/*
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  capture-session:
+    name: Capture Session State
+    runs-on: macos-latest  # Use macOS to match your environment
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Get full history for analysis
+          token: ${{ secrets.GITHUB_TOKEN }}  # Default token or your PAT
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install duckdb pyyaml
+
+      - name: Create Session Directory
+        run: |
+          mkdir -p .github/session-artifacts
+          mkdir -p .freedom/sessions
+
+      - name: Capture Git State
+        run: |
+          cat > .freedom/sessions/git-state-$(date +%Y%m%d-%H%M%S).md << EOF
+          # Git State Capture
+          ## Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          ## Branch: ${GITHUB_REF_NAME}
+          ## Commit: ${GITHUB_SHA}
+          ## Author: ${GITHUB_ACTOR}
+
+          ### Recent Commits (last 20)
+          \`\`\`
+          $(git log --oneline -20)
+          \`\`\`
+
+          ### Changed Files
+          \`\`\`
+          $(git diff --name-status HEAD~1..HEAD 2>/dev/null || echo "No previous commit")
+          \`\`\`
+
+          ### Current Status
+          \`\`\`
+          $(git status --short)
+          \`\`\`
+          EOF
+
+      - name: Run Knowledge DB Stats
+        run: |
+          if [ -f claude-knowledge-system/claude_knowledge_db.py ]; then
+            cd claude-knowledge-system
+            python3 claude_knowledge_db.py stats > ../.freedom/sessions/knowledge-stats.txt 2>&1 || echo "Knowledge DB not initialized"
+            cd ..
+          fi
+
+      - name: Document Service Configuration
+        run: |
+          cat > .freedom/sessions/expected-services.md << EOF
+          # Expected Local Services (Not Running in CI)
+
+          ## When running locally, ensure these services are active:
+
+          ### LM Studio
+          - Port: 1234
+          - Model: qwen/qwen3-next-80b
+          - Purpose: Primary inference engine
+
+          ### PostgreSQL
+          - Port: 5432
+          - Databases: freedom_kb, techknowledge
+          - Extension: pgvector
+
+          ### RAG API
+          - Port: 5003
+          - Script: services/rag_chunker/rag_api.py
+
+          ### Docker Services
+          \`\`\`
+          docker-compose ps
+          \`\`\`
+          (Run locally to see actual status)
+          EOF
+
+      - name: Create Recovery Script
+        run: |
+          cat > .freedom/sessions/recover-session.sh << 'EOF'
+          #!/bin/bash
+          # Session Recovery Script
+          # Generated: $(date)
+
+          echo "🔄 Recovering FREEDOM session..."
+          echo "Branch: ${GITHUB_REF_NAME:-main}"
+          echo "Last commit: ${GITHUB_SHA:-unknown}"
+
+          # Check current branch
+          CURRENT_BRANCH=$(git branch --show-current)
+          echo "Current branch: $CURRENT_BRANCH"
+
+          # Show recent work
+          echo -e "\n📝 Recent commits:"
+          git log --oneline -10
+
+          # Check for uncommitted changes
+          if [ -n "$(git status --porcelain)" ]; then
+            echo -e "\n⚠️  Uncommitted changes detected:"
+            git status --short
+          fi
+
+          # Check Docker services
+          echo -e "\n🐳 Docker services:"
+          docker-compose ps
+
+          # Check LM Studio
+          echo -e "\n🤖 LM Studio status:"
+          curl -s http://localhost:1234/v1/models | jq . 2>/dev/null || echo "LM Studio not running"
+
+          # Check knowledge DB
+          echo -e "\n📚 Knowledge DB:"
+          if [ -f claude-knowledge-system/claude_knowledge_db.py ]; then
+            python3 claude-knowledge-system/claude_knowledge_db.py stats
+          else
+            echo "Knowledge system not found"
+          fi
+
+          echo -e "\n✅ Recovery check complete"
+          EOF
+          chmod +x .freedom/sessions/recover-session.sh
+
+      - name: Generate Session Summary
+        run: |
+          cat > .github/session-artifacts/session-summary.json << EOF
+          {
+            "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "branch": "${GITHUB_REF_NAME}",
+            "commit": "${GITHUB_SHA}",
+            "commit_message": "${{ github.event.head_commit.message }}",
+            "author": "${GITHUB_ACTOR}",
+            "run_number": "${GITHUB_RUN_NUMBER}",
+            "run_id": "${GITHUB_RUN_ID}",
+            "repository": "${GITHUB_REPOSITORY}",
+            "event": "${{ github.event_name }}",
+            "workflow": "${GITHUB_WORKFLOW}"
+          }
+          EOF
+
+      - name: Upload Session Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: session-${{ github.run_number }}-${{ github.sha }}
+          path: |
+            .freedom/sessions/
+            .github/session-artifacts/
+          retention-days: 30
+
+      - name: Create Session Comment (Pull Requests)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('.freedom/sessions/git-state-*.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              body: `## 🔄 Session State Captured\n\n${summary}\n\n[Download artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+            })
+
+# Recovery Instructions:
+# 1. Download artifacts: gh run download <run-id>
+# 2. Run recovery script: bash .freedom/sessions/recover-session.sh
+# 3. Check knowledge DB: python3 claude-knowledge-system/claude_knowledge_db.py context "recent"
