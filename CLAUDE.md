@@ -60,16 +60,16 @@ make shell-db   # PostgreSQL shell
 
 ### Local Development (without Docker)
 ```bash
-# MLX server (port 8000)
-source .venv/bin/activate
-python -m mlx_vlm.server --model ./models/portalAI/UI-TARS-1.5-7B-mlx-bf16 --port 8000
+# LM Studio (port 1234) - PRIMARY inference engine
+# Start LM Studio GUI and load qwen/qwen3-next-80b model
+# Also provides embeddings via nomic-embed-text-v1.5
 
 # RAG API (port 5003)
 cd services/rag_chunker
 python3 rag_api.py
 
-# LM Studio (port 1234) - fallback for MLX
-# Start LM Studio GUI and load UI-TARS-1.5-7B model
+# MLX server (port 8000) - NOT CURRENTLY USED
+# Would run: python -m mlx_vlm.server --model [model] --port 8000
 ```
 
 ## Architecture Overview
@@ -78,7 +78,7 @@ python3 rag_api.py
 - **API Gateway** (8080): Central orchestration, authentication, routing
 - **PostgreSQL** (5432): Main database with pgvector extension
 - **MLX Proxy** (8001): Proxy to host MLX server, with LM Studio fallback
-- **Knowledge Base Service**: Internal vector storage and retrieval
+- **Knowledge Base Service** (8000): Vector storage and retrieval
 - **TechKnowledge** (8002): Technical documentation API
 - **Castle GUI** (3000): Next.js frontend
 - **RAG System** (5003): Document chunking and retrieval
@@ -90,7 +90,7 @@ python3 rag_api.py
 ### Key Architectural Patterns
 1. **Service Communication**: Internal Docker network (freedom_default)
 2. **Authentication**: X-API-Key header validation at API Gateway
-3. **Fallback Strategy**: MLX → LM Studio → Degraded mode
+3. **Inference Strategy**: LM Studio (primary) → Degraded mode (MLX not running)
 4. **Database Strategy**: Multiple PostgreSQL databases (freedom_kb, techknowledge)
 5. **Embedding Pipeline**: LM Studio (local, fast) → OpenAI → Gemini → Fail
 
@@ -111,24 +111,24 @@ FIRECRAWL_API_KEY   # For Firecrawl service
 ```
 
 ### Host Services (must be running)
-1. **MLX Server** (port 8000): Primary inference engine
-2. **LM Studio** (port 1234): Fallback inference and embeddings
-3. **PostgreSQL** databases must be initialized
+1. **LM Studio** (port 1234): Primary inference (qwen3-next-80b) and embeddings
+2. **PostgreSQL** databases must be initialized (freedom_kb, techknowledge)
+3. **MLX Server** (port 8000): Currently not running (optional)
 
 ## Testing Requirements
 
 ### Before ANY PR
 ```bash
-# All must pass with exit code 0
-./scripts/maintenance/checks.sh     # Lint + type checks
-pytest -q tests/unit && pytest -q tests/integration
-./scripts/maintenance/smoke.sh       # End-to-end minimal path
-python core/truth_engine/self_test.py --strict
+# Note: Some test scripts referenced don't exist
+# ./scripts/maintenance/checks.sh - MISSING
+# ./scripts/maintenance/smoke.sh - MISSING
+pytest -q tests/unit && pytest -q tests/integration  # If tests exist
+python3 core/truth_engine/self_test.py --strict  # Use python3
 ```
 
 ### Performance Targets
 - API Gateway: ~3-7ms health check response
-- MLX Generation: 400+ tokens/sec
+- LM Studio Generation: 50-80 tokens/sec (qwen3-next-80b)
 - RAG Query: ~226ms average response
 - Embedding Generation: 28.9ms (LM Studio)
 
@@ -186,7 +186,7 @@ The FREEDOM platform includes 6 MCP servers for enhanced Claude integration:
 
 ### 1. RAG MCP Server (`rag`)
 **Location**: `/Volumes/DATA/FREEDOM/mcp-servers/rag-mcp/`
-**Purpose**: Semantic search across 2,425 technical documents
+**Purpose**: Semantic search across technical documents (currently 3 test chunks)
 **Tools**:
 - `rag_query`: Natural language semantic search with context building
 - `rag_search`: Simple keyword search
@@ -234,31 +234,50 @@ cd services/rag_chunker && python3 rag_api.py
 ## Available AI Models
 
 ### Language Models (via LM Studio - Port 1234)
-| Model | Size | Purpose | Context |
-|-------|------|---------|---------|
-| **Qwen3-Next-80B-A3B** | 45GB | General intelligence, hybrid attention | 256K-1M tokens |
-| **Foundation-Sec-8B** | 4.5GB | Cyber defense specialist | Standard |
-| **Qwen3-30B-A3B** | 16GB | Previous general model | 256K tokens |
+| Model | Parameters | Purpose | Memory |
+|-------|------------|---------|--------|
+| **qwen/qwen3-next-80b** | 80B | Primary inference, SOTA reasoning | ~40GB |
+| **foundation-sec-8b** | 8B | Security analysis | 8GB |
+| **qwen3-30b-a3b-instruct** | 30B | Fast alternative inference | 12.8GB |
+| **nomic-embed-text-v1.5** | - | 768-dim embeddings | 2GB |
 
 ### Model Selection
-- **General Tasks**: Use Qwen3-Next-80B for superior reasoning
-- **Security Analysis**: Use Foundation-Sec-8B for threat detection, CVE analysis
-- **Long Documents**: Qwen3-Next-80B excels at 32K+ token contexts
-- **Quick Inference**: Foundation-Sec-8B runs at 500+ tokens/sec
+- **General Tasks**: qwen3-next-80b (primary, 50-80 tokens/sec)
+- **Security Analysis**: foundation-sec-8b for specialized security tasks
+- **Fast Inference**: qwen3-30b for quicker responses with less memory
+- **Embeddings**: nomic-embed-text-v1.5 (768-dim, 16.2x faster than OpenAI)
 
-### MLX Models Location
-```bash
-models/
-├── lmstudio-community/       # LM Studio managed models
-│   └── Qwen3-30B-A3B-Instruct-2507-MLX-4bit/
-├── Foundation-Sec-8B/        # Base HuggingFace model
-└── Foundation-Sec-8B-MLX-4bit/  # Converted MLX model
-```
+### Model Management
+- Models are managed by LM Studio (not in repository)
+- LM Studio handles model loading and switching
+- Access via http://localhost:1234/v1/ endpoints
+
+## Critical: README Synchronization
+
+**ALWAYS UPDATE README.md AFTER ANY SUCCESSFUL IMPLEMENTATION**
+
+Failure to update README causes:
+- Reimplementation of existing features
+- Destruction of working code
+- Wasted development time
+
+Before starting ANY work:
+1. Check actual running services: `docker ps`, `make health`
+2. Verify README matches reality
+3. If mismatch found, UPDATE README FIRST
+
+After completing work:
+1. Update README with current state
+2. Commit and push immediately
+3. Never leave README outdated
+
+See WORKFLOW_STANDARD.md for complete protocol.
 
 ## Important Notes
 - NEVER claim something works without verification
-- Always run `make verify` before claiming completion
+- Always run `make verify` before claiming completion (if scripts exist)
 - Use functional testing over unit testing when possible
 - Follow "If it doesn't run, it doesn't exist" principle
 - Prefer editing existing files over creating new ones
 - Don't create documentation unless explicitly requested
+- Use python3 instead of python for all commands
