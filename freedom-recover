@@ -54,6 +54,17 @@ EOF
 echo ""
 log "Starting session recovery process..."
 
+# CCKS Integration - Load persistent memory
+if [ -f ~/.claude/ccks ]; then
+    info "🧠 Loading CCKS persistent memory"
+    ~/.claude/ccks query "FREEDOM" > /dev/null 2>&1
+    ~/.claude/ccks add "FREEDOM recovery at $(date)" > /dev/null 2>&1
+    CCKS_STATS=$(~/.claude/ccks stats 2>/dev/null | grep "entries" | cut -d: -f2 | xargs)
+    if [ -n "$CCKS_STATS" ]; then
+        log "CCKS active with $CCKS_STATS knowledge entries"
+    fi
+fi
+
 # 1. Check Git Status
 info "📊 Git Repository Status"
 cd "$FREEDOM_ROOT"

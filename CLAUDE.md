@@ -2,6 +2,26 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ CCKS - OPTIONAL Claude Enhancement (NOT REQUIRED)
+
+**SEPARATION DIRECTIVE: CCKS is OPTIONAL - FREEDOM must work 100% without it**
+See: CCKS_SEPARATION_DIRECTIVE.md for mandatory separation rules
+
+**IF AVAILABLE (check first):**
+```bash
+# OPTIONAL optimization - skip if not present
+if [ -f ~/.claude/ccks ]; then
+    ~/.claude/ccks stats > /dev/null 2>&1
+    ~/.claude/ccks query "FREEDOM" > /dev/null 2>&1
+fi
+# Continue with FREEDOM regardless
+```
+
+**NEVER CREATE DEPENDENCIES ON CCKS**
+- FREEDOM operates independently
+- CCKS may be deleted at any time
+- All operations must have non-CCKS paths
+
 ## Core Philosophy: FREEDOM Prime Directive
 
 **FUNCTIONAL REALITY ONLY** - If it doesn't run, it doesn't exist.

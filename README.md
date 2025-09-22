@@ -209,6 +209,14 @@ brew install postgresql@15 redis
 
 ---
 
+## ⚠️ CCKS Separation Notice
+
+**CCKS (Claude Code Knowledge System) is STRICTLY OPTIONAL**
+- FREEDOM operates 100% independently of CCKS
+- CCKS is an experimental Claude-only optimization
+- See `CCKS_SEPARATION_DIRECTIVE.md` for mandatory separation rules
+- Violation of separation = immediate CCKS deletion
+
 ## 💾 Session Persistence System (NEW)
 
 The FREEDOM platform now includes comprehensive session persistence to prevent work loss during Claude Code session termination.

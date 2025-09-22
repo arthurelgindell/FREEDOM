@@ -171,7 +171,29 @@ else
     echo "  ✓ Already in sync with GitHub"
 fi
 
-# 6. Final summary
+# 6. Save to CCKS persistent memory
+echo -e "\n${GREEN}🧠 Updating CCKS Knowledge Base...${NC}"
+
+if [ -f ~/.claude/ccks ]; then
+    # Store session summary
+    ~/.claude/ccks add "FREEDOM session $(date): Branch $(git branch --show-current), $UNCOMMITTED uncommitted changes" 2>/dev/null
+
+    # Store any recent solutions or fixes
+    git log -1 --format="%s" | xargs -I {} ~/.claude/ccks add "FREEDOM commit: {}" 2>/dev/null
+
+    # Store checkpoint location
+    ~/.claude/ccks add "FREEDOM checkpoint: $CHECKPOINT_FILE" 2>/dev/null
+
+    echo "  ✓ Knowledge persisted to CCKS"
+
+    # Show CCKS stats
+    CCKS_ENTRIES=$(~/.claude/ccks stats 2>/dev/null | grep "entries" | cut -d: -f2 | xargs)
+    echo "  Total knowledge entries: $CCKS_ENTRIES"
+else
+    echo "  ⚠ CCKS not available - using local storage only"
+fi
+
+# 7. Final summary
 echo -e "\n${BLUE}═══════════════════════════════════════${NC}"
 echo -e "${GREEN}✅ Session Saved Successfully!${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
