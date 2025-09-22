@@ -36,19 +36,19 @@ verify: health smoke-test integration-test performance-test metrics-check
 smoke-test:
 	@echo "🧪 Running FREEDOM Platform Smoke Tests..."
 	@echo "Testing all service health endpoints and basic workflows"
-	@python tests/smoke_test.py
+	@python3 tests/smoke_test.py
 
 # Integration tests - verify service-to-service communication
 integration-test:
 	@echo "🔗 Running FREEDOM Platform Integration Tests..."
 	@echo "Testing end-to-end workflows and service integrations"
-	@python tests/integration_test.py
+	@python3 tests/integration_test.py
 
 # Performance benchmarks - verify performance targets are met
 performance-test:
 	@echo "⚡ Running FREEDOM Platform Performance Benchmarks..."
 	@echo "Verifying response times and throughput targets"
-	@python tests/performance_benchmark.py
+	@python3 tests/performance_benchmark.py
 
 # Metrics verification - ensure observability is working
 metrics-check:
@@ -60,7 +60,7 @@ metrics-check:
 # Advanced metrics collection and analysis
 metrics-collect:
 	@echo "📊 Collecting comprehensive platform metrics..."
-	@python tests/metrics_collector.py
+	@python3 tests/metrics_collector.py
 
 # Legacy test command (now points to smoke test)
 test: smoke-test

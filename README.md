@@ -351,7 +351,7 @@ Preflight verifies:
 
 ## 🏗️ Verified Functional Components
 
-### Core Infrastructure (Verified: 2025-09-22T08:10:00Z)
+### Docker Containers (10 Running)
 | Component | Port | Status | Purpose |
 |-----------|------|--------|---------|
 | **API Gateway** | 8080 | ✅ Healthy | Service orchestration, authentication, routing |
@@ -364,7 +364,12 @@ Preflight verifies:
 | **Router** | 8003 | ✅ Running | Task routing (no healthcheck) |
 | **Firecrawl** | 8004 | ✅ Running | Web scraping service |
 | **Playwright Worker** | - | ✅ Running | Browser automation |
-| **LM Studio** | 1234 | ✅ Active | qwen3-next-80b model serving |
+
+### Host Services (Not Containers)
+| Component | Port | Status | Purpose |
+|-----------|------|--------|---------|
+| **LM Studio** | 1234 | ✅ Active | qwen3-next-80b model serving (host process) |
+| **MLX Server** | 8000 | ❌ Not Running | Would run MLX models if started |
 
 
 ### Service Architecture & Workflow
