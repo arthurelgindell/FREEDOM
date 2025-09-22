@@ -220,13 +220,30 @@ python tests/performance/mlx_performance_test.py
 
 ---
 
-## 📊 Benchmarks
+## 🤖 LLM Infrastructure
 
-| Model          | Speed (tokens/sec) | Memory | Accuracy | Status |
-|----------------|---------------------|--------|----------|---------|
-| Qwen3-Next-80B | ~50-80              | ~40GB  | 98%+     | ✅ Active |
-| Qwen3-30B      | 89.7                | 12.8GB | 96.7%    | ✅ Available |
-| Foundation-Sec-8B | ~150             | 8GB    | 92%      | ✅ Available |
+### Current Active Model
+**Qwen3-Next-80B** (80 billion parameters)
+- **Provider**: LM Studio on port 1234
+- **Performance**: 50-80 tokens/sec
+- **Memory Usage**: ~40GB RAM
+- **Capabilities**: State-of-the-art reasoning, code generation, analysis
+- **Status**: ✅ PRIMARY ACTIVE
+
+### Available Models in LM Studio
+| Model | Parameters | Purpose | Memory | Status |
+|-------|------------|---------|--------|--------|
+| **qwen/qwen3-next-80b** | 80B | Primary inference | ~40GB | ✅ Active |
+| **qwen3-30b-a3b-instruct** | 30B | Fast inference | 12.8GB | ✅ Available |
+| **foundation-sec-8b** | 8B | Security analysis | 8GB | ✅ Available |
+| **nomic-embed-text-v1.5** | - | Embeddings (768-dim) | 2GB | ✅ Active |
+
+### Model Access Pattern
+```
+User Request → API Gateway (:8080) → MLX Proxy (:8001) → LM Studio (:1234)
+                                                         ↓
+                                                   Qwen3-Next-80B
+```
 
 ---
 
@@ -655,17 +672,11 @@ See [MCP_SETUP_GUIDE.md](documents/MCP_SETUP_GUIDE_20250921_1800.md) for detaile
 
 ## ⚠️ Known Issues (As of 2025-09-22)
 
-### Current Problems
-1. **Castle GUI healthcheck** - Returns unhealthy but service works (healthcheck.js missing)
-2. **MLX host server** - Not running on port 8000 (LM Studio on 1234 is primary, not fallback)
-3. **Test scripts missing** - Referenced smoke_test.py doesn't exist
-4. **README accuracy** - Multiple claims don't match reality (being fixed)
-
-### Audit Findings
-- PostgreSQL initially had missing 'freedom' role (now fixed)
-- Container count was wrong (10 not 6)
-- Service ports incorrectly documented
-- Test commands reference non-existent scripts
+### Current State
+1. **Castle GUI** - Responds 200 OK but healthcheck reports unhealthy (healthcheck.js not found)
+2. **MLX host server** - Not running on port 8000 (not needed - LM Studio handles inference)
+3. **Test scripts** - smoke_test.py referenced in Makefile doesn't exist
+4. **Container count** - 10 containers running (not 6 as some sections state)
 
 ---
 
