@@ -211,6 +211,25 @@ brew install postgresql@15 redis
 
 ## 🧪 Testing
 
+### ⚠️ macOS Test Execution Requirements
+
+On macOS, host-based test execution may fail due to seatbelt restrictions blocking localhost connections.
+**Solution**: Run tests inside containers or use Docker exec commands.
+
+```bash
+# Instead of running tests from host:
+# python3 tests/smoke_test.py  # May fail on macOS
+
+# Run tests inside a container:
+docker run --rm --network freedom_default -v $(pwd):/app python:3.11 python3 /app/tests/smoke_test.py
+
+# Or use docker exec for service tests:
+docker-compose exec api curl -s http://localhost:8080/health
+docker-compose exec kb-service curl -s http://localhost:8000/health
+```
+
+### Standard Testing
+
 ```bash
 # Unit
 pytest /tests/unit/
@@ -337,7 +356,7 @@ Preflight verifies:
 |-----------|------|--------|---------|
 | **Docker Orchestration** | - | ✅ OPERATIONAL | 10 containers with health checks |
 | **API Gateway** | 8080 | ✅ VERIFIED | Service orchestration, auth, metrics |
-| **Knowledge Base** | internal | ✅ FUNCTIONAL | Vector search with pgvector embeddings |
+| **Knowledge Base** | 8000 | ✅ FUNCTIONAL | Vector search with pgvector embeddings |
 | **MLX Proxy** | 8001 | ✅ CONNECTED | Inference proxy with LM Studio fallback |
 | **TechKnowledge** | 8002 | ✅ RESTORED | 22 technologies, 702 specifications |
 | **PostgreSQL** | 5432 | ✅ ACTIVE | pgvector enabled, multi-database |

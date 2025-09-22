@@ -261,6 +261,7 @@ class KnowledgeBaseDB:
 
                 return {
                     "status": "healthy",
+                    "database_status": "connected" if bool(result) else "disconnected",
                     "database_connected": bool(result),
                     "pgvector_available": bool(vector_check),
                     "total_specifications": spec_count['count'],

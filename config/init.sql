@@ -110,3 +110,50 @@ VALUES
     ('docker', 'containerization', 'https://docker.com', 'https://docs.docker.com'),
     ('postgresql', 'database', 'https://postgresql.org', 'https://www.postgresql.org/docs')
 ON CONFLICT (name) DO NOTHING;
+
+-- Create techknowledge database if it doesn't exist
+-- This is for the TechKnowledge service
+\c postgres
+CREATE DATABASE techknowledge;
+\c techknowledge
+
+-- Apply same schema to techknowledge database
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Copy all table definitions (same as above)
+CREATE TABLE IF NOT EXISTS technologies (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) UNIQUE NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    official_url VARCHAR(500),
+    github_repo VARCHAR(500),
+    documentation_url VARCHAR(500),
+    api_spec_url VARCHAR(500),
+    release_feed_url VARCHAR(500),
+    crawl_config JSONB,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add other required tables for techknowledge
+CREATE TABLE IF NOT EXISTS specifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    technology_id UUID REFERENCES technologies(id),
+    version VARCHAR(50) NOT NULL,
+    component_type VARCHAR(100) NOT NULL,
+    component_name VARCHAR(255) NOT NULL,
+    specification JSONB NOT NULL,
+    source_url VARCHAR(500) NOT NULL,
+    source_type VARCHAR(100) NOT NULL,
+    source_checksum VARCHAR(64),
+    confidence_score FLOAT DEFAULT 1.0,
+    embedding vector(1536),
+    extracted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_verified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    verification_status VARCHAR(20) DEFAULT 'unverified'
+);
+
+-- Switch back to freedom_kb
+\c freedom_kb

@@ -85,7 +85,8 @@ class QueryResponse(BaseModel):
 class HealthCheckResponse(BaseModel):
     """Response model for health checks"""
     status: str
-    database_connected: bool
+    database_status: str  # Changed from database_connected to match test expectations
+    database_connected: bool  # Keep for backwards compatibility
     pgvector_available: bool
     total_specifications: int
     recent_specifications: int
