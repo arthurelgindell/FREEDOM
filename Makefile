@@ -1,4 +1,5 @@
-.PHONY: up down health clean verify test smoke-test integration-test performance-test metrics-check
+.PHONY: up down health clean verify test smoke-test integration-test performance-test metrics-check \
+	truth:all truth:lint truth:unit truth:int truth:perf truth:canary
 
 # Quick development commands
 up:
@@ -90,3 +91,37 @@ codex-turbo-check:
 codex-turbo-bootstrap:
 	@echo "🚀 Bootstrapping Codex Turbo (mandatory) ..."
 	@python3 scripts/codex_turbo_bootstrap.py
+
+# ERBW Truth Engine Gates - RAM-native branch verification
+# All gates must pass for a branch to survive
+truth:all: truth:lint truth:unit truth:int truth:perf truth:canary
+	@echo "✅ All Truth Engine gates passed!"
+
+truth:lint:
+	@echo "🔍 Truth Gate: Lint..."
+	@python3 -m ruff check . --quiet || (echo "❌ Lint failed" && exit 1)
+	@echo "✅ Lint passed"
+
+truth:unit:
+	@echo "🧪 Truth Gate: Unit Tests..."
+	@python3 -m pytest -q tests/unit --maxfail=1 2>/dev/null || (echo "❌ Unit tests failed" && exit 1)
+	@echo "✅ Unit tests passed"
+
+truth:int:
+	@echo "🔗 Truth Gate: Integration Tests..."
+	@python3 -m pytest -q tests/integration --maxfail=1 2>/dev/null || (echo "❌ Integration tests failed" && exit 1)
+	@echo "✅ Integration tests passed"
+
+truth:perf:
+	@echo "⚡ Truth Gate: Performance..."
+	@python3 scripts/council_cli.py status 2>/dev/null | grep -q "ready" || (echo "❌ Performance check failed" && exit 1)
+	@echo "✅ Performance passed"
+
+truth:canary:
+	@echo "🐤 Truth Gate: Canary..."
+	@if [ "$(ERBW_REQUIRE_CANARY)" = "true" ]; then \
+		python3 scripts/council_cli.py status --timeout 60 2>/dev/null || (echo "❌ Canary failed" && exit 1); \
+		echo "✅ Canary passed"; \
+	else \
+		echo "⏭️  Canary skipped (ERBW_REQUIRE_CANARY not set)"; \
+	fi

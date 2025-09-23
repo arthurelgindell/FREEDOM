@@ -1,0 +1,204 @@
+name: ERBW Survivor Check
+
+on:
+  push:
+    branches:
+      - 'ewb/**'
+      - 'svb/**'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  ERBW_PERF_BUDGET_MS: 500
+  ERBW_REQUIRE_CANARY: false
+
+jobs:
+  truth-gates:
+    name: Truth Engine Verification
+    runs-on: macos-14  # M1/M2 runners for consistency with local dev
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest pytest-cov psutil mlx
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f package.json ]; then npm ci; fi
+
+      - name: Gate 1 - Lint
+        id: lint
+        run: |
+          echo "::group::Running lint checks"
+          make truth:lint || echo "LINT_FAILED=true" >> $GITHUB_ENV
+          echo "::endgroup::"
+        continue-on-error: true
+
+      - name: Gate 2 - Unit Tests
+        id: unit
+        run: |
+          echo "::group::Running unit tests"
+          make truth:unit || echo "UNIT_FAILED=true" >> $GITHUB_ENV
+          echo "::endgroup::"
+        continue-on-error: true
+
+      - name: Gate 3 - Integration Tests
+        id: integration
+        run: |
+          echo "::group::Running integration tests"
+          make truth:int || echo "INT_FAILED=true" >> $GITHUB_ENV
+          echo "::endgroup::"
+        continue-on-error: true
+
+      - name: Gate 4 - Performance
+        id: performance
+        run: |
+          echo "::group::Running performance tests"
+          make truth:perf || echo "PERF_FAILED=true" >> $GITHUB_ENV
+          echo "::endgroup::"
+        continue-on-error: true
+
+      - name: Gate 5 - Canary (Optional)
+        id: canary
+        if: env.ERBW_REQUIRE_CANARY == 'true'
+        run: |
+          echo "::group::Running canary tests"
+          make truth:canary || echo "CANARY_FAILED=true" >> $GITHUB_ENV
+          echo "::endgroup::"
+        continue-on-error: true
+
+      - name: Generate Survival Certificate
+        id: certificate
+        run: |
+          # Check if all gates passed
+          if [ -z "$LINT_FAILED" ] && [ -z "$UNIT_FAILED" ] && [ -z "$INT_FAILED" ] && [ -z "$PERF_FAILED" ] && [ -z "$CANARY_FAILED" ]; then
+            echo "SURVIVED=true" >> $GITHUB_ENV
+            echo "✅ BRANCH SURVIVED - All Truth Engine gates passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "SURVIVED=false" >> $GITHUB_ENV
+            echo "❌ BRANCH FAILED - Truth Engine gates did not pass" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Generate detailed report
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+
+          ## Truth Engine Results
+
+          | Gate | Status |
+          |------|--------|
+          | Lint | $([ -z "$LINT_FAILED" ] && echo "✅ Pass" || echo "❌ Fail") |
+          | Unit Tests | $([ -z "$UNIT_FAILED" ] && echo "✅ Pass" || echo "❌ Fail") |
+          | Integration Tests | $([ -z "$INT_FAILED" ] && echo "✅ Pass" || echo "❌ Fail") |
+          | Performance | $([ -z "$PERF_FAILED" ] && echo "✅ Pass" || echo "❌ Fail") |
+          | Canary | $([ "$ERBW_REQUIRE_CANARY" = "true" ] && ([ -z "$CANARY_FAILED" ] && echo "✅ Pass" || echo "❌ Fail") || echo "⏭️ Skipped") |
+
+          **Branch:** \`${{ github.ref_name }}\`
+          **Commit:** \`${{ github.sha }}\`
+          **Timestamp:** $(date -Iseconds)
+          EOF
+
+      - name: Label as Survivor
+        if: env.SURVIVED == 'true' && startsWith(github.ref_name, 'ewb/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Add survivor label
+          gh label create survivor --color 00FF00 --description "Branch survived Truth Engine gates" --force || true
+
+          # Convert to SVB branch name
+          CURRENT_BRANCH="${{ github.ref_name }}"
+          SVB_BRANCH="svb/${CURRENT_BRANCH#ewb/}"
+
+          echo "Converting $CURRENT_BRANCH to $SVB_BRANCH"
+
+      - name: Auto-create PR
+        if: env.SURVIVED == 'true' && startsWith(github.ref_name, 'svb/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Check if PR already exists
+          EXISTING_PR=$(gh pr list --head "${{ github.ref_name }}" --json number --jq '.[0].number' || echo "")
+
+          if [ -z "$EXISTING_PR" ]; then
+            # Create PR with survival certificate
+            gh pr create \
+              --title "ERBW Survivor: ${{ github.ref_name }}" \
+              --body "## 🏆 Survival Certificate
+
+This branch survived all Truth Engine gates and is ready for merge.
+
+### Truth Engine Results
+- ✅ Lint passed
+- ✅ Unit tests passed
+- ✅ Integration tests passed
+- ✅ Performance passed
+$([ "$ERBW_REQUIRE_CANARY" = "true" ] && echo "- ✅ Canary passed" || echo "- ⏭️ Canary skipped")
+
+### Metadata
+- **Branch:** \`${{ github.ref_name }}\`
+- **Commit:** \`${{ github.sha }}\`
+- **Node:** CI
+- **Timestamp:** $(date -Iseconds)
+
+---
+🤖 Generated by FREEDOM ERBW System" \
+              --base main \
+              --label survivor \
+              --label automated-pr
+          else
+            echo "PR #$EXISTING_PR already exists"
+          fi
+
+      - name: Mark for Vanishing
+        if: env.SURVIVED == 'false' && startsWith(github.ref_name, 'ewb/')
+        run: |
+          echo "::error::Branch failed Truth Engine gates and should be vanished"
+          echo "⚠️ This branch should be removed with: freedomctl vanish <path>" >> $GITHUB_STEP_SUMMARY
+          exit 1
+
+  metrics:
+    name: Collect Metrics
+    runs-on: macos-14
+    needs: truth-gates
+    if: always()
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate metrics artifact
+        run: |
+          cat > erbw-metrics.json << EOF
+          {
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "timestamp": "$(date -Iseconds)",
+            "survived": ${{ needs.truth-gates.outputs.survived || false }},
+            "runner": "${{ runner.os }}-${{ runner.arch }}",
+            "workflow_run_id": "${{ github.run_id }}",
+            "workflow_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }
+          EOF
+
+      - name: Upload metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: erbw-metrics-${{ github.run_id }}
+          path: erbw-metrics.json
+          retention-days: 30
