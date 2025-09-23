@@ -22,9 +22,11 @@
   - >50% cache hit rate after 10 queries
   - 0.2ms file access (1000x faster than SSD)
   - 5-10x test execution speed
-- **Components**:
+  - 3s branch creation (10x faster)
+- **Mandatory Components**:
   - **RAM Disk**: 10GB at `/Volumes/CCKS_RAM`
   - **RAM Codebase**: 1.3GB source loaded, 14,730 Python files memory-mapped
+  - **ERBW**: Ephemeral RAM Branch Workflow (integrated)
   - **GPU Acceleration**: MLX framework with 80 cores per node (160 total)
   - **Memory**: 768GB combined RAM across cluster
   - **Knowledge Base**: SQLite with WAL mode for concurrent access
@@ -32,8 +34,8 @@
 - **Auto-Start**: LaunchAgent `com.freedom.ccks-turbo.plist`
 - **Documentation**: `CCKS_TURBO_MODE_IMPLEMENTATION_PROMPT.md`
 
-### 🔄 ERBW (Ephemeral RAM Branch Workflow) ✅
-- **Status**: OPERATIONAL - RAM-native development loop
+### 🔄 ERBW (Ephemeral RAM Branch Workflow) - MANDATORY ✅
+- **Status**: MANDATORY component of CCKS Turbo - Auto-initialized
 - **Purpose**: Self-healing branch lifecycle management
 - **Commands**: `freedomctl` CLI at `/Volumes/DATA/FREEDOM/scripts/erbw.sh`
   - `spawn` - Create ephemeral branch in RAM
@@ -251,7 +253,7 @@ python3 test_e2e_rag.py
 ## ⚡ CCKS TURBO MODE - MANDATORY Enhancement
 
 ### Overview
-CCKS Turbo Mode is a MANDATORY performance enhancement that provides persistent memory, GPU acceleration, and RAM-based development for maximum efficiency.
+CCKS Turbo Mode is a MANDATORY performance enhancement that provides persistent memory, GPU acceleration, RAM-based development, and ephemeral branch workflow (ERBW) for maximum efficiency. All components are required and auto-initialize together.
 
 ### Automatic Initialization
 ```bash

@@ -12,12 +12,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ~/.claude/ccks_ensure_turbo.sh
 ```
 
-**TURBO MODE COMPONENTS:**
+**MANDATORY TURBO MODE COMPONENTS:**
 1. **RAM Disk (10GB)**: /Volumes/CCKS_RAM
 2. **RAM Codebase**: 1.3GB source in memory
-3. **MLX GPU**: 80-core acceleration
-4. **Memory-Mapped Files**: 14,730 Python files
-5. **Syncthing Replication**: Alpha ↔ Beta sync
+3. **ERBW**: Ephemeral RAM Branch Workflow
+4. **MLX GPU**: 80-core acceleration
+5. **Memory-Mapped Files**: 14,730 Python files
+6. **Syncthing Replication**: Alpha ↔ Beta sync
+7. **Truth Engine**: 5-gate verification pipeline
 
 **PERFORMANCE GUARANTEES:**
 - File access: 0.2ms (1000x faster than SSD)
@@ -35,15 +37,17 @@ cat ~/.claude/ccks_turbo_status.json
 ~/.claude/ccks_ensure_turbo.sh
 ```
 
-**RAM CODEBASE OPERATIONS:**
+**MANDATORY DEVELOPMENT WORKFLOW (ERBW):**
 ```bash
-# Edit in RAM (1000x faster)
+# All development MUST use ERBW for branch management
+path=$(freedomctl spawn feature-name)
+freedomctl mutate "$path" vim core/main.py
+freedomctl verify "$path" || freedomctl vanish "$path"
+freedomctl persist "$path"  # Only if all gates pass
+
+# RAM operations for direct edits
 cd /Volumes/CCKS_RAM/freedom_dev/source
-
-# Sync RAM to disk after tests pass
 /Volumes/CCKS_RAM/freedom_dev/dev.sh sync
-
-# Commit from RAM development
 /Volumes/CCKS_RAM/freedom_dev/dev.sh commit
 ```
 
