@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import os
+import sys
+
+sys.path.append(os.path.abspath("."))
+
+from core.codex_turbo_discreet import codex_turbo as turbo
+from core.codex_turbo_discreet import codex_turbo_discreet as api
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="codex-turbo-control")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    sub.add_parser("facilities")
+    sub.add_parser("preload")
+    sub.add_parser("gpu")
+    sub.add_parser("ensure")
+    sub.add_parser("stats")
+
+    args = ap.parse_args()
+
+    if args.cmd == "facilities":
+        p = turbo.write_evidence_facilities()
+        print(json.dumps({"evidence": str(p)}))
+        return 0
+    if args.cmd == "preload":
+        p = turbo.write_evidence_preload()
+        print(json.dumps({"evidence": str(p)}))
+        return 0
+    if args.cmd == "gpu":
+        from core.codex_turbo_discreet.codex_gpu_accelerator import write_evidence
+        p = write_evidence(200)
+        print(json.dumps({"evidence": str(p)}))
+        return 0
+    if args.cmd == "ensure":
+        out = api.ensure()
+        print(json.dumps(out))
+        return 0 if out.get("ok") else 1
+    if args.cmd == "stats":
+        out = api.stats()
+        print(json.dumps(out))
+        return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+

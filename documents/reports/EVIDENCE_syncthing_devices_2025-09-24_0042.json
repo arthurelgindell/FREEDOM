@@ -1,0 +1,38 @@
+{
+  "component": "syncthing_devices_from_config",
+  "started_at": "2025-09-24T00:42:17",
+  "ended_at": "2025-09-24T00:42:17",
+  "outputs": {
+    "ok": true,
+    "config_path": "/Users/arthurdell/Library/Application Support/Syncthing/config.xml",
+    "devices": [
+      {
+        "id": "BWSNSNX-PCHZYJC-K2DZ6JX-HG5OBRU-RWA4PGD-FZ5RNUO-7U6LA3L-K3TBFQR",
+        "name": "Beta-CCKS",
+        "addresses": [
+          "tcp://100.106.170.128:22000",
+          "dynamic"
+        ]
+      },
+      {
+        "id": "J64ABTL-XGEG4FK-IWADAUE-4GYS4NQ-UNTQE22-BZSUUU2-ZFNCRTY-WCGCYAO",
+        "name": "ALPHA.local",
+        "addresses": [
+          "dynamic"
+        ]
+      }
+    ],
+    "beta_candidates": [
+      {
+        "id": "BWSNSNX-PCHZYJC-K2DZ6JX-HG5OBRU-RWA4PGD-FZ5RNUO-7U6LA3L-K3TBFQR",
+        "name": "Beta-CCKS",
+        "addresses": [
+          "tcp://100.106.170.128:22000",
+          "dynamic"
+        ]
+      }
+    ],
+    "timestamp": "2025-09-24T00:42:17"
+  },
+  "verdict": "PASS"
+}

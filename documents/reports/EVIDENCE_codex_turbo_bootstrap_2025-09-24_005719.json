@@ -1,0 +1,70 @@
+{
+  "component": "codex_turbo_bootstrap",
+  "started_at": "2025-09-24T00:57:18",
+  "ended_at": "2025-09-24T00:57:19",
+  "outputs": {
+    "local": {
+      "rc": 0,
+      "out": {
+        "ok": true,
+        "status": {
+          "bridge_available": false,
+          "local_available": true,
+          "local_path": ".freedom/codex_ccks",
+          "bridge": {
+            "allowed": false
+          }
+        },
+        "syncthing": {
+          "checked": false,
+          "available": false
+        },
+        "timestamp": "2025-09-24T00:57:19",
+        "evidence_path": "documents/reports/EVIDENCE_codex_turbo_discreet_2025-09-24_0057.json"
+      }
+    },
+    "beta": {
+      "rc": 0,
+      "out": {
+        "ok": true,
+        "config_path": "/Users/arthurdell/Library/Application Support/Syncthing/config.xml",
+        "devices": [
+          {
+            "id": "BWSNSNX-PCHZYJC-K2DZ6JX-HG5OBRU-RWA4PGD-FZ5RNUO-7U6LA3L-K3TBFQR",
+            "name": "Beta-CCKS",
+            "addresses": [
+              "tcp://100.106.170.128:22000",
+              "dynamic"
+            ]
+          },
+          {
+            "id": "J64ABTL-XGEG4FK-IWADAUE-4GYS4NQ-UNTQE22-BZSUUU2-ZFNCRTY-WCGCYAO",
+            "name": "ALPHA.local",
+            "addresses": [
+              "dynamic"
+            ]
+          }
+        ],
+        "beta_candidates": [
+          {
+            "id": "BWSNSNX-PCHZYJC-K2DZ6JX-HG5OBRU-RWA4PGD-FZ5RNUO-7U6LA3L-K3TBFQR",
+            "name": "Beta-CCKS",
+            "addresses": [
+              "tcp://100.106.170.128:22000",
+              "dynamic"
+            ]
+          }
+        ],
+        "timestamp": "2025-09-24T00:57:19"
+      }
+    },
+    "register": {
+      "skipped": true,
+      "reason": "missing_SYNCTHING_API_KEY"
+    },
+    "check": {
+      "skipped": true
+    }
+  },
+  "verdict": "PASS"
+}

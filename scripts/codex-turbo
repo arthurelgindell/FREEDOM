@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+import os
+import sys
+import runpy
+
+# Invoke the existing CLI with the same arguments, keeping naming simple
+sys.path.append(os.path.abspath("."))
+sys.argv[0] = "codex-turbo"
+runpy.run_path("scripts/codex-turbo-discreet", run_name="__main__")
+

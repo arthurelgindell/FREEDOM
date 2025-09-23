@@ -1,0 +1,18 @@
+{
+  "component": "codex_turbo_discreet",
+  "git_commit": "9f7827b1",
+  "build_hash": "n/a",
+  "started_at": "2025-09-24T00:57:19",
+  "ended_at": "2025-09-24T00:57:19",
+  "inputs_sample": {
+    "check_syncthing": false
+  },
+  "outputs_sample": {
+    "status": {
+      "bridge_available": false,
+      "local_available": true
+    }
+  },
+  "metrics": {},
+  "verdict": "PASS"
+}

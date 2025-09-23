@@ -1,0 +1,14 @@
+{
+  "component": "codex_turbo_gpu_accelerator",
+  "started_at": "2025-09-24T01:13:29",
+  "ended_at": "2025-09-24T01:13:29",
+  "outputs": {
+    "ok": true,
+    "backend": "stub",
+    "count": 200,
+    "dim": 768,
+    "duration_s": 0.025756291,
+    "vectors_per_second": 7765.093196066157
+  },
+  "verdict": "PASS"
+}

@@ -79,3 +79,14 @@ shell-db:
 # MLX local development (bypass Docker)
 mlx-local:
 	source .venv/bin/activate && python -m mlx_vlm.server --model ./models/portalAI/UI-TARS-1.5-7B-mlx-bf16 --port 8000
+codex-turbo-register:
+	@echo "🔗 Registering Codex Turbo Syncthing folder on this node..."
+	@python3 scripts/syncthing_register_codex_turbo.py
+
+codex-turbo-check:
+	@echo "🔎 Checking Codex Turbo Syncthing folder status..."
+	@python3 scripts/syncthing_check_codex_turbo.py
+
+codex-turbo-bootstrap:
+	@echo "🚀 Bootstrapping Codex Turbo (mandatory) ..."
+	@python3 scripts/codex_turbo_bootstrap.py

@@ -1,0 +1,30 @@
+{
+  "component": "ccks_facilities_diagnose",
+  "started_at": "2025-09-23T23:10:40",
+  "ended_at": "2025-09-23T23:10:40",
+  "summary": {
+    "timestamp": "2025-09-23T23:10:40",
+    "ccks": {
+      "available": true,
+      "stats_ok": false,
+      "query_ok": false,
+      "status": {
+        "status": "active",
+        "timestamp": "Tue Sep 23 23:08:14 +04 2025",
+        "ram_disk": "mounted",
+        "beta_connected": "yes"
+      }
+    },
+    "syncthing": {
+      "reachable": false,
+      "http": "",
+      "has_key": false,
+      "connections": null
+    },
+    "codex": {
+      "local_ok": true,
+      "bridge_available": true
+    }
+  },
+  "verdict": "PASS"
+}

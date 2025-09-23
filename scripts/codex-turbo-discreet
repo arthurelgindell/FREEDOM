@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import os
+import sys
+from typing import List
+
+# Allow running from repo without install
+sys.path.append(os.path.abspath("."))
+
+try:
+    from core.codex_turbo_discreet import codex_turbo_discreet as ctd
+except Exception as e:
+    print(json.dumps({"ok": False, "error": f"import_failed: {str(e)}"}))
+    sys.exit(1)
+
+
+def parse_kv(pairs: List[str]):
+    out = {}
+    for p in pairs or []:
+        if "=" in p:
+            k, v = p.split("=", 1)
+            out[k] = v
+    return out
+
+
+def main():
+    parser = argparse.ArgumentParser(prog="codex-turbo-discreet", add_help=True)
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p_q = sub.add_parser("query")
+    p_q.add_argument("--text", required=True)
+    p_q.add_argument("--top-k", type=int, default=5)
+    p_q.add_argument("--tags", type=str, default="")
+    p_q.add_argument("--no-bridge", action="store_true")
+
+    p_a = sub.add_parser("add")
+    p_a.add_argument("--text", required=True)
+    p_a.add_argument("--meta", action="append", default=[])
+    p_a.add_argument("--tags", type=str, default="")
+    p_a.add_argument("--no-bridge", action="store_true")
+
+    p_s = sub.add_parser("stats")
+    p_s.add_argument("--no-bridge", action="store_true")
+
+    p_e = sub.add_parser("ensure")
+    p_e.add_argument("--check-syncthing", action="store_true")
+    p_e.add_argument("--no-bridge", action="store_true")
+
+    p_x = sub.add_parser("export")
+    p_x.add_argument("--out", type=str, default="")
+    p_x.add_argument("--no-bridge", action="store_true")
+
+    p_i = sub.add_parser("import")
+    p_i.add_argument("--file", required=True)
+    p_i.add_argument("--no-bridge", action="store_true")
+
+    args = parser.parse_args()
+
+    # Respect --no-bridge at runtime without changing process env permanently
+    if getattr(args, "no_bridge", False):
+        os.environ["CODEX_TURBO_BRIDGE"] = "0"
+
+    try:
+        if args.cmd == "query":
+            tags = [t for t in (args.tags.split(",") if args.tags else []) if t]
+            res = ctd.query(args.text, tags=tags, top_k=args.top_k)
+            print(json.dumps(res, ensure_ascii=False))
+            return 0
+        elif args.cmd == "add":
+            meta = parse_kv(args.meta)
+            tags = [t for t in (args.tags.split(",") if args.tags else []) if t]
+            res = ctd.add(args.text, metadata=meta, tags=tags)
+            print(json.dumps(res, ensure_ascii=False))
+            return 0 if res.get("ok") else 1
+        elif args.cmd == "stats":
+            res = ctd.stats()
+            print(json.dumps(res, ensure_ascii=False))
+            return 0
+        elif args.cmd == "ensure":
+            res = ctd.ensure(check_syncthing=args.check_syncthing)
+            print(json.dumps(res, ensure_ascii=False))
+            return 0 if res.get("ok") else 1
+        elif args.cmd == "export":
+            res = ctd.export(out_dir=args.out or None)
+            print(json.dumps(res, ensure_ascii=False))
+            return 0 if res.get("ok") else 1
+        elif args.cmd == "import":
+            res = ctd.import_(args.file)
+            print(json.dumps(res, ensure_ascii=False))
+            return 0 if res.get("ok") else 1
+    except Exception as e:
+        print(json.dumps({"ok": False, "error": str(e)}))
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

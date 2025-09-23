@@ -1,0 +1,24 @@
+{
+  "component": "codex_turbo_preload",
+  "started_at": "2025-09-24T01:13:24",
+  "ended_at": "2025-09-24T01:13:24",
+  "outputs": {
+    "ok": true,
+    "files_loaded": 97,
+    "stats": {
+      "files_cached": 86,
+      "total_size_mb": 0.8003635406494141,
+      "max_files": 91
+    },
+    "sample_file": "/Volumes/DATA/FREEDOM/core/mmap_cache.py",
+    "access_ms": {
+      "cold": 0.01558299999999957,
+      "warm": 0.013542000000005272
+    },
+    "ram": {
+      "ram_disk_present": true,
+      "cache_dir": "/Volumes/CCKS_RAM/cache"
+    }
+  },
+  "verdict": "PASS"
+}
