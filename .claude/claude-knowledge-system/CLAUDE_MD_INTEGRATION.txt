@@ -1,0 +1,26 @@
+## 🧠 CCKS - Claude Code Knowledge System (MANDATORY)
+
+**ALWAYS RUN FIRST IN EVERY SESSION:**
+```bash
+# Load persistent memory (REQUIRED)
+~/.claude/ccks stats > /dev/null 2>&1 || echo "CCKS not available"
+
+# Capture session context
+pwd | xargs -I {} ~/.claude/ccks add "Working in: {}"
+git status 2>/dev/null | head -5 | xargs -I {} ~/.claude/ccks add "Git: {}"
+```
+
+**DURING SESSION - AUTO-CAPTURE PATTERNS:**
+- After solving errors: `ccks add "SOLUTION: [description]"`
+- After running commands: Pipe output to `ccks add`
+- Before asking questions: Check `ccks query "[your question]"`
+
+**TOKEN OPTIMIZATION PROTOCOL:**
+1. Before processing any request, ALWAYS run: `ccks query "[user's question]"`
+2. If cache hit (>85% similarity), use cached solution
+3. After providing solution, ALWAYS run: `ccks add "[solution summary]"`
+
+**PERFORMANCE REQUIREMENTS:**
+- Cache hit rate must exceed 50% after 10 queries
+- Token reduction must exceed 80% on repeated queries
+- All solutions must be persisted within 2 minutes (high velocity mode)

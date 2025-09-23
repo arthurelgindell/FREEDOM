@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+"""
+CCKS - Claude Code Knowledge System CLI
+Quick access to the knowledge system with Turbo Mode
+"""
+
+import sys
+import os
+import json
+import subprocess
+from pathlib import Path
+
+# Add the module path
+sys.path.insert(0, str(Path.home() / '.claude' / 'claude-knowledge-system'))
+
+# Auto-initialize Turbo Mode components
+def init_turbo_mode():
+    """Initialize CCKS Turbo Mode components if available."""
+    try:
+        # Check if turbo components exist
+        turbo_path = Path.home() / '.claude' / 'ccks_turbo.py'
+        if turbo_path.exists():
+            # Import and initialize in background
+            sys.path.insert(0, str(Path.home() / '.claude'))
+            from ccks_turbo import CCKSTurbo
+            global turbo_instance
+            turbo_instance = CCKSTurbo()
+            return True
+    except:
+        pass
+    return False
+
+# Initialize Turbo Mode on import
+turbo_available = init_turbo_mode()
+
+def main():
+    if len(sys.argv) < 2:
+        print("🧠 CCKS - Claude Code Knowledge System")
+        print("\nUsage:")
+        print("  ccks stats       - Show statistics")
+        print("  ccks add <text>  - Add knowledge")
+        print("  ccks query <text>- Query knowledge base")
+        print("  ccks flush       - Force save to disk")
+        print("  ccks test        - Run test sequence")
+        return
+
+    command = sys.argv[1]
+
+    # Import and patch for better embeddings
+    import ccks_hotfix
+    import io
+    import contextlib
+
+    # Suppress patch output for clean JSON
+    with contextlib.redirect_stdout(io.StringIO()):
+        ccks_hotfix.patch_ccks_engine()
+
+    from ccks_engine import CCKSEngine
+
+    # Use a singleton pattern with file-based persistence
+    engine = CCKSEngine(memory_limit_gb=100.0, use_gpu=True)
+    engine.load_from_disk()
+
+    if command == "stats":
+        stats = engine.get_stats()
+        print(json.dumps(stats, indent=2))
+
+    elif command == "add" and len(sys.argv) > 2:
+        content = " ".join(sys.argv[2:])
+        entry_id = engine.add_knowledge(content)
+        engine.flush_to_disk()  # Auto-flush on add
+        print(f"✅ Added knowledge: {entry_id[:8]}...")
+        print(f"   Content: {content[:100]}...")
+
+    elif command == "query" and len(sys.argv) > 2:
+        query = " ".join(sys.argv[2:])
+
+        # Use Turbo Mode if available for faster queries
+        if turbo_available and 'turbo_instance' in globals():
+            turbo_result = turbo_instance.turbo_query(query, use_gpu=True, use_distributed=True)
+            if turbo_result.get('cache_hit'):
+                print(f"🚀 TURBO CACHE HIT! (Response: {turbo_result['response_time_ms']:.2f}ms)")
+                result = {'status': 'cache_hit', 'content': str(turbo_result)}
+            else:
+                result = engine.query(query)
+        else:
+            result = engine.query(query)
+
+        if result['status'] == 'cache_hit':
+            print(f"🎯 CACHE HIT! (Saved {result['tokens_saved']} tokens)")
+            print(f"   Similarity: {result['similarity']:.2%}")
+            print(f"   Content: {result['content'][:200]}...")
+        else:
+            print("❌ Cache miss - new query")
+            if result.get('similar_entries'):
+                print("\n📚 Similar entries:")
+                for entry in result['similar_entries'][:3]:
+                    print(f"   - {entry['id'][:8]}... (similarity: {entry['similarity']:.2%})")
+
+    elif command == "flush":
+        engine.flush_to_disk()
+        print("💾 Flushed to disk")
+
+    elif command == "test":
+        print("🧪 Running CCKS test sequence...")
+
+        # Add test data
+        test_entries = [
+            "FREEDOM project: Docker-based AI platform with LM Studio, PostgreSQL, RAG system",
+            "Error fix: docker-compose up fails → run 'docker system prune -a' first",
+            "Command: make verify runs all tests including health, smoke, integration",
+            "Solution: MLX not available → fallback to CPU mode automatically",
+            "Pattern: Always use python3, never python in FREEDOM project"
+        ]
+
+        for entry in test_entries:
+            eid = engine.add_knowledge(entry)
+            print(f"  ✓ Added: {entry[:50]}... [{eid[:8]}]")
+
+        engine.flush_to_disk()
+
+        # Test queries
+        test_queries = [
+            "FREEDOM docker",
+            "docker error fix",
+            "python version to use"
+        ]
+
+        print("\n🔍 Testing queries:")
+        for q in test_queries:
+            result = engine.query(q)
+            status = "HIT" if result['status'] == 'cache_hit' else "MISS"
+            print(f"  Query: '{q}' → {status}")
+
+        # Show final stats
+        stats = engine.get_stats()
+        print(f"\n📊 Final stats:")
+        print(f"  Entries: {stats['entries']}")
+        print(f"  Memory: {stats['memory_used_mb']:.1f}MB")
+        print(f"  Hit rate: {stats['cache_hit_rate']:.1%}")
+        print(f"  Tokens saved: {stats['total_tokens_saved']}")
+
+    else:
+        print(f"Unknown command: {command}")
+
+if __name__ == "__main__":
+    main()

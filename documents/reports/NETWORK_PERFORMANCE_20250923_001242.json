@@ -1,0 +1,30 @@
+{
+  "tailscale_latency": {
+    "min_ms": 1.396,
+    "avg_ms": 1.967,
+    "max_ms": 3.261,
+    "stddev_ms": 0.516
+  },
+  "local_latency": {
+    "min_ms": 1.126,
+    "avg_ms": 1.276,
+    "max_ms": 1.393,
+    "stddev_ms": 0.082
+  },
+  "throughput": {
+    "upload_mbps": 420.79,
+    "download_mbps": 419.99,
+    "upload_time_s": 0.19,
+    "download_time_s": 0.19
+  },
+  "mtu": null,
+  "docker": {
+    "api_gateway_health_ms": 42.59,
+    "postgres_connect_ms": 18.46,
+    "kb-service_connect_ms": 14.78,
+    "mlx-server_connect_ms": 13.6,
+    "techknowledge_connect_ms": 13.18,
+    "redis_connect_ms": 12.66
+  },
+  "tailscale_metrics": null
+}

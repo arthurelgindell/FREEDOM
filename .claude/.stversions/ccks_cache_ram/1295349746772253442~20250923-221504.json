@@ -1,0 +1,1 @@
+{"query": "CCKS TURBO MODE", "optimizations": ["mmap", "gpu_acceleration", "distributed_processing"], "gpu_matches": [[931, 0.10664574056863785], [414, 0.10659182816743851], [275, 0.09935859590768814]], "distributed": true, "response_time_ms": 128.25879199954215, "cache_hit": false}

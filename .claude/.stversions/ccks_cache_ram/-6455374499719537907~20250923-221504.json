@@ -1,0 +1,1 @@
+{"query": "test", "optimizations": ["mmap", "gpu_acceleration"], "gpu_matches": [[986, 0.10946837812662125], [852, 0.10676157474517822], [373, 0.10470680147409439]], "response_time_ms": 28.14595800009556, "cache_hit": false}

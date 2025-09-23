@@ -1,0 +1,61 @@
+{
+  "timestamp": "2025-09-22T21:39:48.895304",
+  "passed": 3,
+  "failed": 5,
+  "success_rate": 37.5,
+  "tests": [
+    {
+      "name": "Basic Functionality",
+      "passed": false,
+      "message": "FAILED: Stats output not valid JSON",
+      "metrics": {}
+    },
+    {
+      "name": "Add and Query",
+      "passed": false,
+      "message": "FAILED: Could not find added content in query results",
+      "metrics": {}
+    },
+    {
+      "name": "Persistence",
+      "passed": true,
+      "message": "\u2713 Database persisted (192512 bytes)",
+      "metrics": {
+        "db_size": 192512
+      }
+    },
+    {
+      "name": "Memory Limits",
+      "passed": false,
+      "message": "FAILED: Could not parse stats: Expecting value: line 1 column 1 (char 0)",
+      "metrics": {}
+    },
+    {
+      "name": "FREEDOM Integration",
+      "passed": true,
+      "message": "\u2713 FREEDOM integration working",
+      "metrics": {}
+    },
+    {
+      "name": "Token Metrics",
+      "passed": false,
+      "message": "FAILED: Could not parse metrics: Expecting value: line 1 column 1 (char 0)",
+      "metrics": {}
+    },
+    {
+      "name": "Performance",
+      "passed": true,
+      "message": "\u2713 Performance OK - Add: 0.106s, Query: 0.121s",
+      "metrics": {
+        "add_time": 0.10588502883911133,
+        "query_time": 0.12063288688659668
+      }
+    },
+    {
+      "name": "GPU Acceleration",
+      "passed": false,
+      "message": "FAILED: Could not check GPU status: Expecting value: line 1 column 1 (char 0)",
+      "metrics": {}
+    }
+  ]
+}

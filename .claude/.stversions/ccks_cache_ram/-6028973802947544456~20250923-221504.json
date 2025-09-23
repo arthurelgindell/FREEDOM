@@ -1,0 +1,1 @@
+{"query": "FREEDOM initialization", "optimizations": ["mmap", "gpu_acceleration"], "gpu_matches": [[37, 0.1179325208067894], [181, 0.10406211018562317], [837, 0.10379825532436371]], "response_time_ms": 80.36837500000038, "cache_hit": false}

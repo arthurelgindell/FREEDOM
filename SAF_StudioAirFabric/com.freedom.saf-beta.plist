@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.freedom.saf-beta</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/arthurdell/ray_env/bin/python</string>
+        <string>/Users/arthurdell/connect_to_ray.py</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>RAY_ENABLE_WINDOWS_OR_OSX_CLUSTER</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>/Users/arthurdell/ray_env/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>VIRTUAL_ENV</key>
+        <string>/Users/arthurdell/ray_env</string>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/arthurdell</string>
+
+    <key>UserName</key>
+    <string>arthurdell</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+        <key>NetworkState</key>
+        <true/>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/arthurdell/saf-beta.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/arthurdell/saf-beta-error.log</string>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
+
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Minute</key>
+        <integer>2</integer>
+    </dict>
+
+    <key>Nice</key>
+    <integer>-5</integer>
+</dict>
+</plist>

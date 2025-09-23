@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.freedom.saf-alpha</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3.9</string>
+        <string>-m</string>
+        <string>ray.scripts.scripts</string>
+        <string>start</string>
+        <string>--head</string>
+        <string>--node-ip-address=100.106.170.128</string>
+        <string>--port=6380</string>
+        <string>--num-cpus=32</string>
+        <string>--disable-usage-stats</string>
+        <string>--block</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>RAY_ENABLE_WINDOWS_OR_OSX_CLUSTER</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>/Volumes/DATA/FREEDOM</string>
+
+    <key>UserName</key>
+    <string>arthurdell</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+        <key>NetworkState</key>
+        <true/>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Volumes/DATA/FREEDOM/SAF_StudioAirFabric/logs/saf-alpha.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Volumes/DATA/FREEDOM/SAF_StudioAirFabric/logs/saf-alpha-error.log</string>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
+
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <key>StartInterval</key>
+    <integer>60</integer>
+
+    <key>Nice</key>
+    <integer>-5</integer>
+</dict>
+</plist>
